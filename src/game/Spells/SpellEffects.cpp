@@ -727,6 +727,26 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
             }
         }
 
+        // KST scaling damage for DK spells for lvl under 55
+        if (m_caster->IsPlayer() && m_caster->getClass() == CLASS_DEATH_KNIGHT && m_caster->GetLevel() < 55)
+        {
+            // Check that the spell belongs to the Death Knight class
+            if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
+            {
+                // Linear scalling based on level
+                // Level 1 = 15% damage | lvl 30 = 61% | level 55 = 100%
+                float levelFactor = (float)m_caster->GetLevel() / 55.0f;
+                float dkRatio = 0.15f + (levelFactor * 0.85f);
+
+                // On applique le ratio aux dégâts calculés
+                damage = int32(damage * dkRatio);
+
+                // Sécurité pour ne pas faire 0 dégât
+                if (damage <= 0 && m_spellInfo->CalculateSimpleValue(eff_idx) > 0)
+                    damage = 1;
+            }
+        }
+
         if (damage >= 0)
             m_damagePerEffect[eff_idx] = CalculateSpellEffectDamage(unitTarget, damage, m_damageDoneMultiplier[eff_idx], eff_idx);
     }

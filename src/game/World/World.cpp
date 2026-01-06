@@ -460,6 +460,9 @@ void World::LoadConfigSettings(bool reload)
     setConfigPos(CONFIG_FLOAT_RATE_XP_EXPLORE_VANILLA,                   "Rate.XP.Explore.Vanilla",                   1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_XP_EXPLORE_BC,                        "Rate.XP.Explore.BC",                        1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_XP_EXPLORE_WOTLK,                     "Rate.XP.Explore.Wrath",                     1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_UNTIL_LEVEL_60,                    "Rate.XP.Level.60",                          1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_UNTIL_LEVEL_70,                    "Rate.XP.Level.70",                          1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_UNTIL_LEVEL_80,                    "Rate.XP.Level.80",                          1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_GAIN,                      "Rate.Reputation.Gain",                      1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_LOWLEVEL_KILL,             "Rate.Reputation.LowLevel.Kill",             1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_LOWLEVEL_QUEST,            "Rate.Reputation.LowLevel.Quest",            1.0f);

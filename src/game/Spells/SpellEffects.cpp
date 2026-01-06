@@ -738,10 +738,10 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                 float levelFactor = (float)m_caster->GetLevel() / 55.0f;
                 float dkRatio = 0.15f + (levelFactor * 0.85f);
 
-                // On applique le ratio aux dégâts calculés
+                // Apply ratio
                 damage = int32(damage * dkRatio);
 
-                // Sécurité pour ne pas faire 0 dégât
+                // Security against 0 or negative damage
                 if (damage <= 0 && m_spellInfo->CalculateSimpleValue(eff_idx) > 0)
                     damage = 1;
             }

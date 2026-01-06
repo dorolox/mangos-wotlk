@@ -23283,7 +23283,8 @@ Item* Player::ConvertItem(Item* item, uint32 newItemId)
 
 uint32 Player::CalculateTalentsPoints() const
 {
-    uint32 base_level = getClass() == CLASS_DEATH_KNIGHT ? 55 : 9;
+    // KST: Force Death Knight to gain talent points as other classes
+    uint32 base_level = 9;
     uint32 base_talent = GetLevel() <= base_level ? 0 : GetLevel() - base_level;
 
     uint32 talentPointsForLevel = base_talent + m_questRewardTalentCount;

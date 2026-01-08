@@ -734,9 +734,9 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
             if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
             {
                 // Linear scalling based on level
-                // Level 1 = 15% damage | lvl 30 = 61% | level 55 = 100%
+                // Level 1 = 8% damage | level 55 = 100%
                 float levelFactor = (float)m_caster->GetLevel() / 55.0f;
-                float dkRatio = 0.15f + (levelFactor * 0.85f);
+                float dkRatio = 0.08f + (levelFactor * 0.92f);
 
                 // Apply ratio
                 damage = int32(damage * dkRatio);
@@ -7612,6 +7612,17 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
 
     // total damage
     bonus = int32(bonus * totalDamagePercentMod);
+
+	// KST scaling damage for DK spells for lvl under 55 (Weapon Damage spells)
+        if (m_caster->IsPlayer() && m_caster->getClass() == CLASS_DEATH_KNIGHT && m_caster->GetLevel() < 55)
+        {
+            if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
+            {
+                float levelFactor = (float)m_caster->GetLevel() / 55.0f;
+                float dkRatio = 0.08f + (levelFactor * 0.92f);
+                bonus = int32(bonus * dkRatio);
+            }
+        }
 
     // prevent negative damage
     m_damagePerEffect[eff_idx] = CalculateSpellEffectDamage(unitTarget, bonus, m_damageDoneMultiplier[eff_idx], eff_idx);

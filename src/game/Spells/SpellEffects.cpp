@@ -733,10 +733,12 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
             // Check that the spell belongs to the Death Knight class
             if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
             {
-                // Linear scalling based on level
-                // Level 1 = 1.5% damage | level 55 = 100%
-                float levelFactor = (float)m_caster->GetLevel() / 55.0f;
-                float dkRatio = 0.01f + (levelFactor * 0.99f);
+                // Log scalling based on level
+                float level = (float)m_caster->GetLevel();
+				float levelProgress = level / 55.0f;
+				float dkRatio = std::pow(levelProgress, 2.5f);
+				dkRatio = dkRatio * 0.9f + levelProgress * 0.1f;
+				dkRatio = std::max(0.01f, std::min(dkRatio, 1.0f));
 
                 // Apply ratio
                 damage = int32(damage * dkRatio);
@@ -7574,8 +7576,13 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
     {
         if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
         {
-            float levelFactor = (float)m_caster->GetLevel() / 55.0f;
-            float dkRatio = 0.01f + (levelFactor * 0.99f);
+            // Log scalling based on level
+            float level = (float)m_caster->GetLevel();
+			float levelProgress = level / 55.0f;
+			float dkRatio = std::pow(levelProgress, 2.5f);
+			dkRatio = dkRatio * 0.9f + levelProgress * 0.1f;
+			dkRatio = std::max(0.01f, std::min(dkRatio, 1.0f));
+
             fixed_bonus = int32(fixed_bonus * dkRatio);
         }
     }

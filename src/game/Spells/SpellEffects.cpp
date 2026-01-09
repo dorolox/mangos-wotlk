@@ -7569,6 +7569,17 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
         }
     }
 
+	// KST scaling damage for DK spells for lvl under 55 (Fixed damage part only)
+    if (m_caster->IsPlayer() && m_caster->getClass() == CLASS_DEATH_KNIGHT && m_caster->GetLevel() < 55)
+    {
+        if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
+        {
+            float levelFactor = (float)m_caster->GetLevel() / 55.0f;
+            float dkRatio = 0.01f + (levelFactor * 0.99f);
+            fixed_bonus = int32(fixed_bonus * dkRatio);
+        }
+    }
+
     // apply weaponDamagePercentMod to spell bonus also
     if (spellBonusNeedWeaponDamagePercentMod)
         spell_bonus = int32(spell_bonus * weaponDamagePercentMod);
@@ -7612,17 +7623,6 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
 
     // total damage
     bonus = int32(bonus * totalDamagePercentMod);
-
-	// KST scaling damage for DK spells for lvl under 55 (Weapon Damage spells)
-        if (m_caster->IsPlayer() && m_caster->getClass() == CLASS_DEATH_KNIGHT && m_caster->GetLevel() < 55)
-        {
-            if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
-            {
-                float levelFactor = (float)m_caster->GetLevel() / 55.0f;
-                float dkRatio = 0.05f + (levelFactor * 0.95f);
-                bonus = int32(bonus * dkRatio);
-            }
-        }
 
     // prevent negative damage
     m_damagePerEffect[eff_idx] = CalculateSpellEffectDamage(unitTarget, bonus, m_damageDoneMultiplier[eff_idx], eff_idx);

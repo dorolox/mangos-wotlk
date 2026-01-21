@@ -3042,6 +3042,145 @@ void Player::GiveLevel(uint32 level)
     PlayerClassLevelInfo classInfo;
     sObjectMgr.GetPlayerClassLevelInfo(plClass, level, &classInfo);
 
+	// KST provide quest class's skills at right level
+	switch (getClass())
+	{
+		case CLASS_DRUID:
+			switch (level)
+			{
+				case 10:
+					learnSpell(5487, false); // Bear Form
+					learnSpell(2649, false); //	Growl
+					learnSpell(6807, false); //	Maul
+					break;
+				case 14:
+					learnSpell(8946, false); // Cure Poison
+					break;
+				case 16:
+					learnSpell(1066, false); // Aquatic Form
+					break;
+				case 70:
+					learnSpell(40120, false); // Swift Flight Form
+					break;
+			}
+			break;
+
+		case CLASS_HUNTER:
+			switch (level)
+			{
+				case 10:
+					learnSpell(1515, false); // Tame Beast
+					learnSpell(883, false); // Call Pet
+					learnSpell(2641, false); // Dismiss Pet
+					learnSpell(1539, false); // Feed Pet
+					learnSpell(982, false); // Revive Pet
+					break;
+			}
+			break;
+
+		case CLASS_MAGE:
+			switch (level)
+			{
+				case 60:
+					learnSpell(118, false); // Polymorph
+					break;
+				case 71:
+					learnSpell(53140, false); // Teleport: Dalaran
+					break;
+			}
+			break;
+
+		case CLASS_PALADIN:
+			switch (level)
+			{
+				case 12:
+					learnSpell(7328, false); // Redemption
+					break;
+				case 20:
+					learnSpell(5502, false); // Sense Undead
+					break;
+				case 60:
+					learnSpell(17481, false); // Charger
+					learnSpell(33391, false); // Journeyman Riding
+					break;
+			}
+			break;
+
+		case CLASS_PRIEST:
+			switch (level)
+			{
+				case 20:
+					learnSpell(6346, false); // Fear Ward
+					break;
+			}
+			break;
+
+		case CLASS_ROGUE:
+			switch (level)
+			{
+				case 20:
+					learnSpell(2842, false); // Poisons
+					break;
+			}
+			break;
+
+		case CLASS_SHAMAN:
+			switch (level)
+			{
+				case 4:
+					learnSpell(8071, false); // Stoneskin Totem
+					break;
+				case 10:
+					learnSpell(3599, false); // Searing Totem
+					break;
+				case 20:
+					learnSpell(5394, false); // Healing Stream Totem
+					break;
+			}
+			break;
+
+		case CLASS_WARLOCK:
+			switch (level)
+			{
+				case 10:
+					learnSpell(697, false); // Summon Voidwalker
+					break;
+				case 20:
+					learnSpell(712, false); // Summon Succubus
+					break;
+				case 30:
+					learnSpell(691, false); // Summon Felhunter
+					break;
+				case 50:
+					learnSpell(1122, false); // Inferno
+					break;
+				case 60:
+					learnSpell(23161, false); // Dreadsteed
+					learnSpell(18540, false); // Ritual of Doom
+					break;
+			}
+			break;
+
+		case CLASS_WARRIOR:
+			switch (level)
+			{
+				case 10:
+					learnSpell(71, false); // Defensive Stance
+					learnSpell(7386, false); // Sunder Armor
+					learnSpell(355, false); // Taunt
+					break;
+				case 30:
+					learnSpell(2458, false); // Berserker Stance
+					learnSpell(20252, false); // Intercept
+					break;
+			}
+			break;
+	}
+
+	// KST gain dual spec automatically at lvl 20
+	if (level == 20)
+		learnSpell(63680, false);
+
     // send levelup info to client
     WorldPacket data(SMSG_LEVELUP_INFO, (4 + 4 + MAX_POWERS * 4 + MAX_STATS * 4));
     data << uint32(level);

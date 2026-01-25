@@ -3049,7 +3049,7 @@ void Player::GiveLevel(uint32 level)
 			{
 				case 10:
 					learnSpell(5487, false); // Bear Form
-					learnSpell(2649, false); //	Growl
+					learnSpell(6795, false); //	Growl
 					learnSpell(6807, false); //	Maul
 					break;
 				case 14:

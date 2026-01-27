@@ -3178,8 +3178,10 @@ void Player::GiveLevel(uint32 level)
 	}
 
 	// KST gain dual spec automatically at lvl 20
-	if (level == 20)
+	if (level == 20) {
 		learnSpell(63680, false);
+		UpdateSpecCount(2);
+	}
 
     // send levelup info to client
     WorldPacket data(SMSG_LEVELUP_INFO, (4 + 4 + MAX_POWERS * 4 + MAX_STATS * 4));

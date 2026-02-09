@@ -9609,6 +9609,26 @@ void Aura::HandleTriggerLinkedAura(bool apply, bool Real)
         return;
 
     uint32 linkedSpell = GetSpellProto()->EffectTriggerSpell[m_effIndex];
+
+    // KST safety check to avoid crash with bots that had an aura trigger that must not be there
+    if (!linkedSpell)
+        return;
+
+    Unit* target = GetTarget();
+    Unit* caster = GetCaster();
+
+    if (!caster || !target)
+    {
+        sLog.outError("Aura::HandleTriggerLinkedAura: skip linked spell %u because caster or target is null. "
+                      "apply=%u auraSpell=%u targetGuid=%s casterGuid=%s",
+                      linkedSpell, apply ? 1u : 0u,
+                      GetId(),
+                      (target ? target->GetObjectGuid().GetString().c_str() : "<null>"),
+                      (caster ? caster->GetObjectGuid().GetString().c_str() : "<null>"));
+        return;
+    }
+    // End of custom
+
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(linkedSpell);
     if (!spellInfo)
     {

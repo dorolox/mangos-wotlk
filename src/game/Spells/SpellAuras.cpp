@@ -9636,9 +9636,6 @@ void Aura::HandleTriggerLinkedAura(bool apply, bool Real)
         return;
     }
 
-    Unit* target = GetTarget();
-    Unit* caster = GetCaster();
-
     if (apply)
     {
         SpellCastArgs args;

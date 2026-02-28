@@ -808,10 +808,6 @@ class ChatHandler
         bool HandleRandomPlayerbotCommand(char* args);
         bool HandleAhBotCommand(char* args);
         bool HandlePerfMonCommand(char* args);
-
-        // Sets validIn=0 for all rows with event="add" in ai_playerbot_random_bots
-        // Equivalent to: update ai_playerbot_random_bots set validIn=0 where event="add";
-        bool HandleRandomBotsFlushAddEventCommand(char* args);
 #endif
 
         bool HandleArenaFlushPointsCommand(char* args);

@@ -1000,9 +1000,6 @@ ChatCommand* ChatHandler::getCommandTable()
         { "rndbot",           SEC_GAMEMASTER,    true,  &ChatHandler::HandleRandomPlayerbotCommand,    "", nullptr },
         { "bot",              SEC_PLAYER,        false, &ChatHandler::HandlePlayerbotCommand,          "", nullptr },
         { "pmon",             SEC_GAMEMASTER,    true,  &ChatHandler::HandlePerfMonCommand,            "", nullptr },
- 		// Player-accessible "global flush": marks all "add" events invalid so bots can be removed by bot system
-        { "rndbotflush",   SEC_PLAYER,        true,  &ChatHandler::HandleRandomBotsFlushAddEventCommand,
-          "Usage: .rndbotflush", nullptr },
 #endif
         { "cast",           SEC_ADMINISTRATOR,  false, nullptr,                                           "", castCommandTable     },
         { "character",      SEC_GAMEMASTER,     true,  nullptr,                                           "", characterCommandTable},
@@ -3901,32 +3898,6 @@ void ChatHandler::BuildChatPacket(WorldPacket& data, ChatMsg msgtype, char const
     if (isAchievement)
         data << uint32(achievementId);
 }
-
-#ifdef ENABLE_PLAYERBOTS
-bool ChatHandler::HandleRandomBotsFlushAddEventCommand(char* /*args*/)
-{
-    // Very small anti-spam: 1 call per 30 seconds server-wide.
-    // If you prefer per-account/per-player cooldown, say so and I’ll adjust it.
-    static time_t s_lastCall = 0;
-    time_t now = time(nullptr);
-    if (s_lastCall && (now - s_lastCall) < 30)
-    {
-        PSendSysMessage("Please wait %u seconds before using this again.", uint32(30 - (now - s_lastCall)));
-        SetSentErrorMessage(true);
-        return false;
-    }
-
-    // Exact DB-side equivalent:
-    // update ai_playerbot_random_bots set validIn=0 where event="add";
-    CharacterDatabase.DirectExecute("UPDATE ai_playerbot_random_bots SET validIn=0 WHERE event='add'");
-
-    s_lastCall = now;
-
-    SendSysMessage("Playerbots: expire bots log time validity");
-    SendSysMessage("Note: bots will logout when the playerbots system next evaluates that flag. Grouped bots would not be affected");
-    return true;
-}
-#endif
 
 
 // Instantiate template for helper function

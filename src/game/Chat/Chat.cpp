@@ -997,7 +997,7 @@ ChatCommand* ChatHandler::getCommandTable()
 #ifndef BUILD_AHBOT
         { "ahbot",            SEC_GAMEMASTER,    true,  &ChatHandler::HandleAhBotCommand,              "", nullptr },
 #endif
-        { "rndbot",           SEC_GAMEMASTER,    true,  &ChatHandler::HandleRandomPlayerbotCommand,    "", nullptr },
+        { "rndbot",           SEC_PLAYER,        true,  &ChatHandler::HandleRandomPlayerbotCommand,    "", nullptr },
         { "bot",              SEC_PLAYER,        false, &ChatHandler::HandlePlayerbotCommand,          "", nullptr },
         { "pmon",             SEC_GAMEMASTER,    true,  &ChatHandler::HandlePerfMonCommand,            "", nullptr },
 #endif

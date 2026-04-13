@@ -3071,7 +3071,7 @@ void Player::GiveLevel(uint32 level)
 					learnSpell(1515, false); // Tame Beast
 					learnSpell(883, false); // Call Pet
 					learnSpell(2641, false); // Dismiss Pet
-					learnSpell(1539, false); // Feed Pet
+					learnSpell(6991, false); // Feed Pet
 					learnSpell(982, false); // Revive Pet
 					break;
 			}

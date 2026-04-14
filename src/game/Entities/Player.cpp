@@ -3161,6 +3161,28 @@ void Player::GiveLevel(uint32 level)
 			}
 			break;
 
+		case CLASS_DEATH_KNIGHT:
+			switch (level)
+			{
+				case 10:
+					learnSpell(50842, false); // Pestilence
+					break;
+				case 20:
+					learnSpell(48721, false); // Blood Boil
+					break;
+				case 30:
+					learnSpell(47528, false); // Mind Freeze
+					learnSpell(43265, false); // Death and Decay
+					break;
+				case 40:
+					learnSpell(45524, false); // Chains of Ice
+					break;
+				case 50:
+					learnSpell(49998, false); // Death Strike
+					break;
+			}
+			break;
+
 		case CLASS_WARRIOR:
 			switch (level)
 			{

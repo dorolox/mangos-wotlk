@@ -432,6 +432,7 @@ void World::LoadConfigSettings(bool reload)
     setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_ARTIFACT,                   "Rate.Drop.Item.Artifact",                   1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_REFERENCED,                 "Rate.Drop.Item.Referenced",                 1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_QUEST,                      "Rate.Drop.Item.Quest",                      1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_GATHERING,                  "Rate.Drop.Item.Gathering",                  1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_DROP_MONEY,                           "Rate.Drop.Money",                           1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_PET_XP_KILL,                          "Rate.Pet.XP.Kill",                          1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_PET_XP_KILL_VANILLA,                  "Rate.Pet.XP.Kill.Vanilla",                  1.0f);

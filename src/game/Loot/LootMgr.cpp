@@ -1859,6 +1859,7 @@ Loot::Loot(Player* player, Creature* creature, LootType type) :
                 sLog.outError("Loot::CreateLoot> cannot create skinning loot, FillLoot failed with loot id(%u)!", creatureInfo->SkinningLootId);
                 return;
             }
+            ApplyItemCountMultiplier(sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_ITEM_GATHERING));
             break;
         }
         default:
@@ -1933,6 +1934,7 @@ Loot::Loot(Player* player, GameObject* gameObject, LootType type, bool lootSnaps
                 if (!FillLoot(subzone, LootTemplates_Fishing, player, true, (subzone != zone)) && subzone != zone)
                     // else use zone loot (if zone diff. from subzone, must exist in like case)
                     FillLoot(zone, LootTemplates_Fishing, player, true);
+                ApplyItemCountMultiplier(sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_ITEM_GATHERING));
                 break;
             }
             default:
@@ -1950,6 +1952,9 @@ Loot::Loot(Player* player, GameObject* gameObject, LootType type, bool lootSnaps
                         m_clientLootType = CLIENT_LOOT_FISHING;
                     else
                         m_clientLootType = CLIENT_LOOT_PICKPOCKETING;
+
+                    if (m_lootType == LOOT_SKINNING || m_lootType == LOOT_FISHINGHOLE)
+                        ApplyItemCountMultiplier(sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_ITEM_GATHERING));
                 }
                 break;
             }
@@ -2445,6 +2450,15 @@ bool Loot::IsItemAlreadyIn(uint32 itemId) const
             return true;
     }
     return false;
+}
+
+void Loot::ApplyItemCountMultiplier(float multiplier)
+{
+    if (multiplier <= 1.0f)
+        return;
+
+    for (auto lootItem : m_lootItems)
+        lootItem->count = std::max(1u, uint32(lootItem->count * multiplier));
 }
 
 // fill in the bytebuffer with loot content for specified player (return false if no items/gold filled)

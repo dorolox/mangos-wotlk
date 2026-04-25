@@ -1859,7 +1859,7 @@ Loot::Loot(Player* player, Creature* creature, LootType type) :
                 sLog.outError("Loot::CreateLoot> cannot create skinning loot, FillLoot failed with loot id(%u)!", creatureInfo->SkinningLootId);
                 return;
             }
-            ApplyItemCountMultiplier(sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_ITEM_GATHERING));
+            ApplyItemCountMultiplier(sWorld.getConfig(CONFIG_UINT32_RATE_DROP_ITEM_GATHERING_RANDOM_MAX));
             break;
         }
         default:
@@ -1934,7 +1934,7 @@ Loot::Loot(Player* player, GameObject* gameObject, LootType type, bool lootSnaps
                 if (!FillLoot(subzone, LootTemplates_Fishing, player, true, (subzone != zone)) && subzone != zone)
                     // else use zone loot (if zone diff. from subzone, must exist in like case)
                     FillLoot(zone, LootTemplates_Fishing, player, true);
-                ApplyItemCountMultiplier(sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_ITEM_GATHERING));
+                ApplyItemCountMultiplier(sWorld.getConfig(CONFIG_UINT32_RATE_DROP_ITEM_GATHERING_RANDOM_MAX));
                 break;
             }
             default:
@@ -1954,7 +1954,7 @@ Loot::Loot(Player* player, GameObject* gameObject, LootType type, bool lootSnaps
                         m_clientLootType = CLIENT_LOOT_PICKPOCKETING;
 
                     if (m_lootType == LOOT_SKINNING || m_lootType == LOOT_FISHINGHOLE)
-                        ApplyItemCountMultiplier(sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_ITEM_GATHERING));
+                        ApplyItemCountMultiplier(sWorld.getConfig(CONFIG_UINT32_RATE_DROP_ITEM_GATHERING_RANDOM_MAX));
                 }
                 break;
             }
@@ -2452,13 +2452,17 @@ bool Loot::IsItemAlreadyIn(uint32 itemId) const
     return false;
 }
 
-void Loot::ApplyItemCountMultiplier(float multiplier)
+void Loot::ApplyItemCountMultiplier(uint32 maxMultiplier)
 {
-    if (multiplier <= 1.0f)
+    if (maxMultiplier <= 1)
         return;
 
     for (auto lootItem : m_lootItems)
-        lootItem->count = std::max(1u, uint32(lootItem->count * multiplier));
+    {
+        if (!lootItem->itemProto || lootItem->itemProto->InventoryType != INVTYPE_NON_EQUIP)
+            continue;
+        lootItem->count *= urand(1, maxMultiplier);
+    }
 }
 
 // fill in the bytebuffer with loot content for specified player (return false if no items/gold filled)

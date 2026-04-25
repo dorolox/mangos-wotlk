@@ -443,7 +443,6 @@ void World::LoadConfigSettings(bool reload)
     setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_ARTIFACT,                   "Rate.Drop.Item.Artifact",                   1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_REFERENCED,                 "Rate.Drop.Item.Referenced",                 1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_QUEST,                      "Rate.Drop.Item.Quest",                      1.0f);
-    setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_GATHERING,                  "Rate.Drop.Item.Gathering",                  1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_DROP_MONEY,                           "Rate.Drop.Money",                           1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_PET_XP_KILL,                          "Rate.Pet.XP.Kill",                          1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_PET_XP_KILL_VANILLA,                  "Rate.Pet.XP.Kill.Vanilla",                  1.0f);
@@ -686,6 +685,7 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_SKILL_GAIN_DEFENSE,   "SkillGain.Defense",   1);
     setConfig(CONFIG_UINT32_SKILL_GAIN_GATHERING, "SkillGain.Gathering", 1);
     setConfig(CONFIG_UINT32_SKILL_GAIN_WEAPON,       "SkillGain.Weapon",    1);
+    setConfig(CONFIG_UINT32_RATE_DROP_ITEM_GATHERING_RANDOM_MAX, "Rate.Drop.Item.Gathering.RandomMax", 1);
 
     setConfig(CONFIG_BOOL_SKILL_FAIL_LOOT_FISHING,         "SkillFail.Loot.Fishing", true);
     setConfig(CONFIG_BOOL_SKILL_FAIL_GAIN_FISHING,         "SkillFail.Gain.Fishing", true);

@@ -1479,9 +1479,10 @@ Visibility.AIRelocationNotifyDelay = 1000
 #        Drop rates (items by quality and money)
 #        Default: 1
 #
-#    Rate.Drop.Item.Gathering
-#        Multiplies the quantity of items received from gathering (herbalism, mining,
-#        skinning) and fishing. Does not affect drop chance, only the item count per loot.
+#    Rate.Drop.Item.Gathering.RandomMax
+#        Sets the upper bound of a random multiplier (between 1 and this value) applied
+#        to the quantity of non-equippable items from gathering (herbalism, mining, skinning)
+#        and fishing. Each item in the loot rolls independently. Set to 1 to disable.
 #        Default: 1
 #
 #    Rate.Pet.XP.Kill
@@ -1651,7 +1652,7 @@ Rate.Drop.Item.Legendary = 1
 Rate.Drop.Item.Artifact = 1
 Rate.Drop.Item.Referenced = 1
 Rate.Drop.Item.Quest = 1
-Rate.Drop.Item.Gathering = 1
+Rate.Drop.Item.Gathering.RandomMax = 1
 Rate.Drop.Money = 1
 Rate.Pet.XP.Kill = 1
 Rate.XP.Kill    = 1

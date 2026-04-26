@@ -11,6 +11,7 @@ of their party, enabling mixed-level groups to play together meaningfully.
 - `.sync on` — activates sync. Captures the **current lowest level** in the
   party at that instant and stores it as the player's sync level.
 - `.sync off` — deactivates sync and restores full stats.
+- `.sync show` — displays current sync state and level without changing anything.
 - Party changes (join / leave) have **no automatic effect** on an active sync.
   The player must re-run `.sync on` to re-evaluate the new lowest level.
 - If the **party is fully disbanded**, sync is automatically deactivated.
@@ -33,10 +34,10 @@ computed totals. No per-item or per-spell inspection.
 | Spell power | Scaled by ratio |
 | Armor | Scaled by ratio |
 | Resistances | Scaled by ratio |
-| Outgoing damage | Scaled by ratio (damage done modifier) |
-| Incoming healing | Scaled by ratio (healing done modifier) |
+| Outgoing damage | Scaled via spell bonus functions |
+| Incoming healing | Scaled via healing bonus functions |
 | XP gain | Calculated using sync level instead of real level |
-| Quest grey/green/yellow colour | Evaluated against sync level |
+| Quest grey/green/yellow colour | Client-side only — not changed (see note below) |
 
 ## What does NOT scale / change
 
@@ -48,6 +49,7 @@ computed totals. No per-item or per-spell inspection.
 | Item level requirements | Left at real level |
 | Movement speed | Not affected |
 | PvP power / resilience | Scaled by ratio like all other stats |
+| LFG daily dungeon reward tier | Uses real level — synced players keep full reward |
 
 ---
 
@@ -76,153 +78,130 @@ ratio = (syncLevel / realLevel) ^ k      -- k > 1 makes scaling more aggressive
 | Event | Effect on sync |
 |---|---|
 | `.sync on` in a party | Activates, snapshots current lowest party level |
-| `.sync on` solo | No effect (or optional: sync to own level = no-op) |
+| `.sync on` solo | No effect — requires a party |
 | Party member joins | No effect |
-| Party member leaves | No effect |
-| Party fully disbanded | Sync deactivated automatically |
+| Party member leaves | Sync cleared for the leaving player |
+| Party fully disbanded | Sync deactivated for all members automatically |
 | Player logs out | Sync deactivated |
 | Player enters BG / Arena | No effect — sync remains active |
 | `.sync on` or `.sync off` while in combat | Blocked, error message returned |
+| `.sync show` while in combat | Allowed — read-only, no stat change |
 | `.sync off` out of combat | Sync deactivated manually |
 
 ---
 
-## Implementation plan (v1 scope)
+## Implementation status
 
-### 1. Player state (`src/game/Entities/Player.h` / `Player.cpp`)
+### ✅ 1. Player state (`src/game/Entities/Player.h` / `Player.cpp`)
 
-- Add `uint32 m_syncLevel` (0 = inactive).
-- Add helpers:
-  - `bool IsSynced() const`
-  - `uint32 GetSyncLevel() const`
-  - `void SetSync(uint32 level)` — sets level, triggers stat recalc, clamps HP/mana
-  - `void ClearSync()` — sets to 0, triggers stat recalc
-- Do **not** modify `GetLevel()` — add `GetEffectiveLevel()` that returns
-  `m_syncLevel` when active, `GetLevel()` otherwise.
+- `uint32 m_syncLevel` (0 = inactive), `float m_syncRatio` (1.0 when inactive).
+- Helpers: `IsSynced()`, `GetSyncLevel()`, `GetEffectiveLevel()`, `GetSyncRatio()`,
+  `SetSync(uint32 level)`, `ClearSync()`.
+- `GetLevel()` is not modified. All sync-aware code uses `GetEffectiveLevel()`.
 
-### 2. Stat scaling hooks
+### ✅ 2. Stat scaling hooks (`src/game/Entities/StatSystem.cpp`)
 
-Inject the ratio multiplier at the **end** of each update function, after
-normal computation:
+Ratio applied at the end of each update function after normal computation:
 
-- `Player::UpdateMaxHealth()`
-- `Player::UpdateMaxPower()` (covers mana, energy, etc.)
-- `Player::UpdateAttackPowerAndDamage()`
-- `Player::UpdateSpellDamageAndHealingBonus()`
-- `Player::UpdateArmor()`
-- `Player::UpdateResistances()`
+- `Player::UpdateMaxHealth()` — override, clamps current HP to new max.
+- `Player::UpdateMaxPower()` — override, clamps current power to new max.
+- `Player::UpdateAttackPowerAndDamage()` — AP scaled by ratio; also uses
+  `GetEffectiveLevel()` in place of `GetLevel()` for the level-based AP formula.
+- `Player::UpdateArmor()` — armor value scaled by ratio.
+- `Player::UpdateResistances()` — each resistance scaled by ratio.
 
-Pattern inside each function:
-```cpp
-// ... existing calculation ...
-if (IsSynced())
-{
-    float ratio = float(GetSyncLevel()) / float(GetLevel());
-    SetStat / SetMaxHealth / etc. *= ratio;
-}
-```
+### ✅ 3. Spell / healing output scaling (`src/game/Entities/Unit.cpp`)
 
-### 3. Damage / healing output modifiers
+Rather than a synthetic aura, the ratio is applied directly inside:
 
-Rather than modifying the base stats alone, also apply the ratio as a
-`SPELL_AURA_MOD_DAMAGE_PERCENT_DONE` and `SPELL_AURA_MOD_HEALING_DONE_PERCENT`
-modifier so that all damage sources (spells, melee, ranged) are covered
-uniformly without needing to touch each damage-dealing code path.
+- `Unit::SpellBaseDamageBonusDone()` — scales the returned bonus when the unit
+  is a synced player (`GetSyncRatio() < 1.0`).
+- `Unit::SpellBaseHealingBonusDone()` — same pattern.
 
-This can be implemented as a synthetic internal aura applied/removed by
-`SetSync` / `ClearSync`.
+### ✅ 4. XP gain (`Player::GiveXP`)
 
-### 4. XP gain (`Player::GiveXP`)
+`uint32 level = GetEffectiveLevel()` — XP formula uses sync level instead of
+real level.
 
-Replace the level parameter passed to the XP formula with `GetEffectiveLevel()`
-so XP is calculated as if the player were the sync level.
+### ✅ 5. Quest colour / grey check
 
-### 5. Quest colour / grey check
+`GetQuestLevelForPlayer()` updated to use `GetEffectiveLevel()`, which affects
+server-side calculations (XP rewards, reputation gains).
 
-Find the level comparison used for quest difficulty colouring (likely in
-`Player::GetLevelDiff` or equivalent) and replace with `GetEffectiveLevel()`.
+The grey/green/yellow difficulty colour in the UI is **client-side only**: the
+server sends the quest's static level via `SMSG_QUEST_QUERY_RESPONSE` and the
+client compares it against the player's real level locally. This cannot be
+influenced server-side without patching the client — not worth doing.
 
-### 6. `.sync` chat command
-
-Add to the existing GM/player command system (`src/game/Chat/`):
+### ✅ 6. `.sync` chat command (`src/game/Chat/Level0.cpp`)
 
 ```
-.sync on   — calls SetSync(lowest party member level)
-.sync off  — calls ClearSync()
+.sync on    — SetSync(lowest online party member level); blocked in combat
+.sync off   — ClearSync(); blocked in combat
+.sync show  — displays current state; always available including in combat
 ```
 
-Validation:
-- Player must be in a party for `.sync on`
-- Blocked if player is in combat (both `.sync on` and `.sync off`) — checked
-  server-side via `player->IsInCombat()`, same pattern as talent respec/logout
-- Print current sync level to player on activation
+Registered in `Chat.cpp` as `SEC_PLAYER`. Declared in `Chat.h`.
 
-### 7. Party disband hook
+### ✅ 7. Party disband / leave hook (`src/game/Groups/Group.cpp`)
 
-In the group-disband / player-leave-group handler, iterate affected players
-and call `ClearSync()` on any who are synced and now have no group.
+- `Group::Disband()` — calls `ClearSync()` on every member.
+- `Group::RemoveMember()` — calls `ClearSync()` on the leaving player.
 
-### 8. Logout / disconnect
+### ✅ 8. Logout / disconnect (`src/game/Entities/Player.cpp`)
 
-Call `ClearSync()` in `Player::SaveToDB()` or the logout handler to avoid
-persisting sync state.
-
----
-
-## Files likely touched
-
-| File | Change |
-|---|---|
-| `src/game/Entities/Player.h` | New fields and helpers |
-| `src/game/Entities/Player.cpp` | Stat hooks, GiveXP, logout |
-| `src/game/Entities/Unit.cpp` | `GetEffectiveLevel()` usage in combat formulas |
-| `src/game/Chat/Level2.cpp` (or similar) | `.sync` command handler |
-| `src/game/Groups/Group.cpp` | Disband hook |
+`ClearSync()` called in `Player::RemoveFromWorld()`.
 
 ---
 
 ## LFG dungeon access for synced players
 
-A synced level-80 player cannot queue for low-level dungeons through the
-standard LFG tool because the client greys them out based on the player's
-**real** level read from `LFGDungeons.dbc`. Two changes are required.
+### ✅ Client-side — patch LFGDungeons.dbc
 
-### Client-side — patch LFGDungeons.dbc
+Script: `contrib/client_tools/patch_lfg_dungeons.py`
 
-Tool: **WDBX Editor** (free, open source, handles WoTLK DBCs natively).
-
-Steps:
-1. Extract `LFGDungeons.dbc` from the client MPQ files.
-2. Open in WDBX Editor.
-3. Filter to dungeon-type entries only (leave raid entries untouched).
-4. Bulk-set the `maxlevel` column to **80** for all selected rows.
-   Keep `minlevel` unchanged — players still need the minimum level to queue.
-5. Save and distribute via a custom patch MPQ (e.g. `patch-4.MPQ`) or as a
-   loose file in the client `Data/` override folder.
-
-Effect: all dungeons become visible and queueable in the LFG tool for any
-player who meets the `minlevel`. This also automatically includes those
-dungeons in the **random daily dungeon** pool for eligible players.
-
-### Server-side — update LFG data in the database
-
-CMaNGOS mirrors LFG dungeon data in the database (introduced in
-`sql/updates/mangos/14045_01_mangos_lfg_data.sql`). The exact table and
-column names need to be confirmed in the codebase, but the intent is:
-
-```sql
--- Confirm table/column names before running
-UPDATE `lfg_dungeon_template` SET `maxlevel` = 80 WHERE `type` = 1;
+```bash
+python patch_lfg_dungeons.py <path/to/LFGDungeons.dbc>
 ```
 
-Also use `GetEffectiveLevel()` (the sync-aware helper) instead of `GetLevel()`
-in the server-side LFG eligibility check so a synced player is validated
-against their sync level, not their real level.
+- Extract `LFGDungeons.dbc` from **`lichking-locale-enUS.MPQ`** (or your locale
+  equivalent) — not from `lichking.MPQ` (which contains only 3D assets) and not
+  from `locale-enUS.MPQ` (which has the outdated 24-field TBC version).
+- The script sets `maxlevel = 80` for all dungeon and heroic entries
+  (TypeIDs 1, 5, 6). Raids (TypeID 2) and world zones (TypeID 4) are untouched.
+- Pack the modified file into `patch-4.MPQ` at internal path
+  `DBFilesClient\LFGDungeons.dbc` and place it in the client's `Data\` folder.
 
-**TODO before implementing:**
-- Confirm LFG table and column names in `src/game/LFG/` and related DB schema
-- Identify the exact eligibility check function to patch with `GetEffectiveLevel()`
-- Write and add the SQL UPDATE to `contrib/DB_Tools/WorldDB/`
+### ✅ Server-side — eligibility check (`src/game/LFG/LFGMgr.cpp`)
+
+`LFGMgr::GetLockedDungeons()` now uses `GetEffectiveLevel()` instead of
+`GetLevel()` when computing which dungeons to lock (grey out) for a player.
+Synced players are therefore validated against their sync level.
+
+`GetRandomDungeonReward()` deliberately keeps `GetLevel()` (real level) so
+synced players still receive the full daily reward tier for their actual level.
+
+### ✅ DB table — not required
+
+The server-side level check uses `LFGDungeonExpansionStore` (DBC data), not the
+`lfg_dungeon_template` DB table. No SQL update is needed.
+
+---
+
+## Files touched
+
+| File | Change |
+|---|---|
+| `src/game/Entities/Player.h` | New fields and helpers |
+| `src/game/Entities/Player.cpp` | SetSync/ClearSync, GiveXP, RemoveFromWorld |
+| `src/game/Entities/StatSystem.cpp` | UpdateMaxHealth, UpdateMaxPower, UpdateAttackPowerAndDamage, UpdateArmor, UpdateResistances overrides |
+| `src/game/Entities/Unit.cpp` | SpellBaseDamageBonusDone, SpellBaseHealingBonusDone |
+| `src/game/Chat/Chat.h` | HandleSyncCommand declaration |
+| `src/game/Chat/Chat.cpp` | .sync registered in command table |
+| `src/game/Chat/Level0.cpp` | HandleSyncCommand implementation |
+| `src/game/Groups/Group.cpp` | Disband and RemoveMember hooks |
+| `src/game/LFG/LFGMgr.cpp` | GetLockedDungeons uses GetEffectiveLevel() |
+| `contrib/client_tools/patch_lfg_dungeons.py` | DBC patcher script |
 
 ---
 
@@ -235,3 +214,4 @@ against their sync level, not their real level.
 - No visual indicator to other players that a character is synced (could add
   a buff icon via a cosmetic aura later).
 - Dungeon/raid lockout and loot eligibility are unaffected by sync level.
+- Quest difficulty colour in the UI reflects the player's real level (client-side calculation, not changeable server-side without a client patch).

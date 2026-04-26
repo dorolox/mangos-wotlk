@@ -749,6 +749,7 @@ void WorldSession::LogoutPlayer()
 
         ///- empty buyback items and save the player in the database
         // some save parts only correctly work in case player present in map/player_lists (pets, etc)
+        _player->ClearSync();
         if (m_playerSave)
             _player->SaveToDB();
 

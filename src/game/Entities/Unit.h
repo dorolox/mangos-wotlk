@@ -1382,6 +1382,7 @@ class Unit : public WorldObject
         bool CanFreeMove() const { return !hasUnitState(UNIT_STAT_NO_FREE_MOVE) && !GetOwnerGuid(); }
 
         virtual uint32 GetLevelForTarget(Unit const* /*target*/) const { return GetLevel(); }
+        virtual uint32 GetEffectiveLevel() const { return GetLevel(); }
         bool IsTrivialForTarget(Unit const* pov) const;
 
         void SetLevel(uint32 lvl);

@@ -1453,7 +1453,8 @@ class Player : public Unit
         // Level sync
         bool   IsSynced() const          { return m_syncLevel > 0; }
         uint32 GetSyncLevel() const      { return m_syncLevel; }
-        uint32 GetEffectiveLevel() const { return m_syncLevel > 0 ? m_syncLevel : GetLevel(); }
+        uint32 GetEffectiveLevel() const override { return m_syncLevel > 0 ? m_syncLevel : GetLevel(); }
+        uint32 GetLevelForTarget(Unit const* /*target*/) const override { return GetEffectiveLevel(); }
         float  GetSyncRatio() const      { return m_syncRatio; }
         void   SetSync(uint32 level);
         void   ClearSync();

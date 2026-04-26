@@ -545,6 +545,9 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
 
     ClearResurrectRequestData();
 
+    m_syncLevel = 0;
+    m_syncRatio = 1.0f;
+
     memset(m_items, 0, sizeof(Item*)*PLAYER_SLOTS_COUNT);
 
     m_social = nullptr;
@@ -2484,6 +2487,8 @@ void Player::AddToWorld()
 
 void Player::RemoveFromWorld()
 {
+    ClearSync();
+
     // cleanup
     if (IsInWorld())
     {
@@ -2957,6 +2962,22 @@ void Player::SendLogXPGain(uint32 GivenXP, Unit* victim, uint32 RestXP, bool rec
     GetSession()->SendPacket(data);
 }
 
+void Player::SetSync(uint32 level)
+{
+    m_syncLevel = level;
+    m_syncRatio = float(level) / float(GetLevel());
+    UpdateAllStats();
+}
+
+void Player::ClearSync()
+{
+    if (!IsSynced())
+        return;
+    m_syncLevel = 0;
+    m_syncRatio = 1.0f;
+    UpdateAllStats();
+}
+
 void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
 {
     if (xp < 1)
@@ -2968,7 +2989,7 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
     if (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED))
         return;
 
-    uint32 level = GetLevel();
+    uint32 level = GetEffectiveLevel();
 
     // KST add multiplicator per levels
     if (level < 60)

@@ -1448,7 +1448,15 @@ class Player : public Unit
         /*********************************************************/
 
         // Return player level when QuestLevel is dynamic (-1)
-        uint32 GetQuestLevelForPlayer(Quest const* pQuest) const { return pQuest && (pQuest->GetQuestLevel() > 0) ? (uint32)pQuest->GetQuestLevel() : GetLevel(); }
+        uint32 GetQuestLevelForPlayer(Quest const* pQuest) const { return pQuest && (pQuest->GetQuestLevel() > 0) ? (uint32)pQuest->GetQuestLevel() : GetEffectiveLevel(); }
+
+        // Level sync
+        bool   IsSynced() const          { return m_syncLevel > 0; }
+        uint32 GetSyncLevel() const      { return m_syncLevel; }
+        uint32 GetEffectiveLevel() const { return m_syncLevel > 0 ? m_syncLevel : GetLevel(); }
+        float  GetSyncRatio() const      { return m_syncRatio; }
+        void   SetSync(uint32 level);
+        void   ClearSync();
 
         void PrepareQuestMenu(ObjectGuid guid) const;
         void SendPreparedQuest(ObjectGuid guid) const;
@@ -1905,6 +1913,8 @@ class Player : public Unit
 
         bool UpdateStats(Stats stat) override;
         bool UpdateAllStats() override;
+        void UpdateMaxHealth() override;
+        void UpdateMaxPower(Powers power) override;
         void UpdateResistances(uint32 school) override;
         void UpdateArmor() override;
         void ApplyFeralAPBonus(int32 amount, bool apply);
@@ -2980,6 +2990,9 @@ class Player : public Unit
         ReputationMgr  m_reputationMgr;
 
         uint32 m_cachedGS;
+
+        uint32 m_syncLevel;     // 0 = not synced, otherwise = snapshot level
+        float  m_syncRatio;     // pre-computed syncLevel / realLevel, 1.0f when not synced
 
         bool m_isGhouled;
 

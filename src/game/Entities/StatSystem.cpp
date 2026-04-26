@@ -163,7 +163,7 @@ void Player::UpdateResistances(uint32 school)
     {
         int32 value = GetTotalResistanceValue(SpellSchools(school));
         int32 oldValue = GetResistance(SpellSchools(school));
-        SetResistance(SpellSchools(school), value);
+        SetResistance(SpellSchools(school), IsSynced() ? int32(float(value) * m_syncRatio) : value);
 
         if (value != oldValue)
             if (Pet* pet = GetPet())
@@ -190,7 +190,7 @@ void Player::UpdateArmor()
     m_auraModifiersGroup[UNIT_MOD_ARMOR][TOTAL_VALUE] += dynamic;
     int32 value = GetTotalResistanceValue(SPELL_SCHOOL_NORMAL);
     int32 oldValue = GetArmor();
-    SetArmor(value);
+    SetArmor(IsSynced() ? int32(float(value) * m_syncRatio) : value);
     m_auraModifiersGroup[UNIT_MOD_ARMOR][TOTAL_VALUE] -= dynamic;
 
     if (value != oldValue)
@@ -259,6 +259,34 @@ void Unit::UpdateMaxPower(Powers power)
     SetMaxPower(power, uint32(std::round(value)));
 }
 
+void Player::UpdateMaxHealth()
+{
+    Unit::UpdateMaxHealth();
+    if (IsSynced())
+    {
+        uint32 newMax = uint32(std::max(1.f, float(GetMaxHealth()) * m_syncRatio));
+        SetMaxHealth(newMax);
+        if (GetHealth() > newMax)
+            SetHealth(newMax);
+    }
+}
+
+void Player::UpdateMaxPower(Powers power)
+{
+    Unit::UpdateMaxPower(power);
+    if (IsSynced())
+    {
+        uint32 current = GetMaxPower(power);
+        if (current > 0)
+        {
+            uint32 newMax = std::max(1u, uint32(current * m_syncRatio));
+            SetMaxPower(power, newMax);
+            if (GetPower(power) > newMax)
+                SetPower(power, newMax);
+        }
+    }
+}
+
 void Player::ApplyFeralAPBonus(int32 amount, bool apply)
 {
     m_baseFeralAP += apply ? amount : -amount;
@@ -268,7 +296,7 @@ void Player::ApplyFeralAPBonus(int32 amount, bool apply)
 void Player::UpdateAttackPowerAndDamage(bool ranged)
 {
     float val2 = 0.0f;
-    float level = float(GetLevel());
+    float level = float(GetEffectiveLevel());
 
     UnitMods unitMod = ranged ? UNIT_MOD_ATTACK_POWER_RANGED : UNIT_MOD_ATTACK_POWER;
 
@@ -385,6 +413,9 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
     SetInt16Value(index_mod, 0, int32(m_attackPowerMod[size_t(mod)][size_t(AttackPowerModSign::MOD_SIGN_POS)] + statBonus));
     SetInt16Value(index_mod, 1, m_attackPowerMod[size_t(mod)][size_t(AttackPowerModSign::MOD_SIGN_NEG)]);
     SetFloatValue(index_mult, attPowerMultiplier);          // UNIT_FIELD_(RANGED)_ATTACK_POWER_MULTIPLIER field
+
+    if (IsSynced())
+        SetInt32Value(index, int32(float(GetInt32Value(index)) * m_syncRatio));
 
     // automatically update weapon damage after attack power modification
     if (ranged)

@@ -453,7 +453,7 @@ LfgLockMap const LFGMgr::GetLockedDungeons(Player* player)
 {
     LfgLockMap lock;
 
-    uint8 level = player->GetLevel();
+    uint8 level = uint8(player->GetEffectiveLevel());
     uint8 expansion = player->GetSession()->GetExpansion();
     LfgDungeonSet const& dungeons = GetDungeonsByRandom(0);
     bool denyJoin = false; // TODO: Implement disabling LFG in anticheat

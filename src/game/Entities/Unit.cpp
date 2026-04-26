@@ -8275,6 +8275,10 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask)
             if (i->GetModifier()->m_miscvalue & schoolMask)
                 DoneAdvertisedBenefit += int32(GetTotalAttackPowerValue(BASE_ATTACK) * i->GetModifier()->m_amount / 100.0f);
         }
+
+        float syncRatio = ((Player const*)this)->GetSyncRatio();
+        if (syncRatio < 1.0f)
+            DoneAdvertisedBenefit = int32(float(DoneAdvertisedBenefit) * syncRatio);
     }
     return DoneAdvertisedBenefit;
 }
@@ -8440,6 +8444,10 @@ int32 Unit::SpellBaseHealingBonusDone(SpellSchoolMask schoolMask)
         for (auto i : mHealingDonebyAP)
             if (i->GetModifier()->m_miscvalue & schoolMask)
                 AdvertisedBenefit += int32(GetTotalAttackPowerValue(BASE_ATTACK) * i->GetModifier()->m_amount / 100.0f);
+
+        float syncRatio = ((Player const*)this)->GetSyncRatio();
+        if (syncRatio < 1.0f)
+            AdvertisedBenefit = int32(float(AdvertisedBenefit) * syncRatio);
     }
     return AdvertisedBenefit;
 }

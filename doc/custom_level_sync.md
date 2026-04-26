@@ -29,9 +29,8 @@ computed totals. No per-item or per-spell inspection.
 | System | Behaviour |
 |---|---|
 | Max HP | Scaled by ratio |
-| Max mana | Scaled by ratio |
-| Max energy / rage / runic power | **Not scaled** — fixed caps, do not scale with level |
-| Mana regeneration (spirit + mp5) | **Not scaled** — pool reduction alone creates combat mana pressure; unscaled regen keeps OOC recovery feeling natural |
+| Max mana / energy / rage / runic power | **Not scaled** — mana left at full value; scaling would cause client-side grey-out of affordable spells (DBC costs are client-side and cannot be changed without a client patch) |
+| Mana regeneration (spirit + mp5) | **Not scaled** — mana system is entirely untouched |
 | Attack power (melee & ranged) | Scaled by ratio |
 | Spell power | Scaled by ratio |
 | Armor | Scaled by ratio |
@@ -103,12 +102,9 @@ integer truncation in the C++ casts.
 | System | Formula |
 |---|---|
 | Max HP | `newMax = max(1, floor(normalMaxHP × ratio))` — current HP clamped to newMax |
-| Max mana | `newMax = max(1, floor(normalMaxMana × ratio))` — current mana clamped to newMax |
-| Max energy | Unchanged — fixed 100 cap, does not scale with level |
-| Max rage | Unchanged — fixed 100 cap, does not scale with level |
-| Max runic power | Unchanged — fixed 100 cap, does not scale with level |
-| Max focus (pet window) | Not applicable to players |
-| Mana regen (spirit + mp5) | Unchanged — fills the reduced pool ~(1/ratio)× faster than unsynced, which is acceptable |
+| Max mana | Unchanged — see "What does NOT scale" for rationale |
+| Max energy / rage / runic power | Unchanged — fixed caps, do not scale with level |
+| Mana regen (spirit + mp5) | Unchanged — mana system fully untouched |
 
 ### Player — combat stats
 
@@ -325,7 +321,7 @@ The server-side level check uses `LFGDungeonExpansionStore` (DBC data), not the
 |---|---|
 | `src/game/Entities/Player.h` | New fields and helpers; `GetLevelForTarget` override |
 | `src/game/Entities/Player.cpp` | SetSync/ClearSync, GiveXP, RemoveFromWorld |
-| `src/game/Entities/StatSystem.cpp` | Player: UpdateMaxHealth, UpdateMaxPower, UpdateAttackPowerAndDamage, UpdateArmor, UpdateResistances; Pet: UpdateMaxHealth, UpdateAttackPowerAndDamage |
+| `src/game/Entities/StatSystem.cpp` | Player: UpdateMaxHealth, UpdateAttackPowerAndDamage, UpdateArmor, UpdateResistances; Pet: UpdateMaxHealth, UpdateAttackPowerAndDamage |
 | `src/game/Entities/Unit.cpp` | SpellBaseDamageBonusDone, SpellDamageBonusDone, MeleeDamageBonusDone, SpellBaseHealingBonusDone, SpellHealingBonusDone, CalculateEffectiveCritChance |
 | `src/game/Chat/Chat.h` | HandleSyncCommand declaration |
 | `src/game/Chat/Chat.cpp` | .sync registered in command table |

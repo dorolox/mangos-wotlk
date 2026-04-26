@@ -1,7 +1,7 @@
 -- Adds a free-teleport gossip NPC in each racial capital (Alliance & Horde)
 
 -- -- Inserts creature_template entry 190001 (Capital City Teleporter),
--- -- npc_text 190001, gossip_menu 190001, and 8 creature spawns
+-- -- npc_text 190001, gossip_menu 60001, and 8 creature spawns
 -- -- (one per capital city). Safe to re-run: DELETEs before INSERTs.
 -- -- DisplayId1 (19106) can be changed to any valid creature display ID.
 -- -- Spawn coordinates are approximate city-center landmarks.
@@ -16,9 +16,9 @@ INSERT INTO `npc_text` (`ID`, `text0_0`, `prob0`) VALUES
 -- ============================================================
 -- Gossip menu (ties the NPC to its greeting text)
 -- ============================================================
-DELETE FROM `gossip_menu` WHERE `entry` = 190001;
+DELETE FROM `gossip_menu` WHERE `entry` = 60001;
 INSERT INTO `gossip_menu` (`entry`, `text_id`) VALUES
-(190001, 190001);
+(60001, 190001);
 
 -- ============================================================
 -- Creature template
@@ -40,7 +40,7 @@ VALUES
      35, 1.0, 7, 3, 3,
      1, 80, 80,
      1.0, 1.14286,
-     190001, 'npc_capital_teleporter');
+     60001, 'npc_capital_teleporter');
 
 -- ============================================================
 -- Creature spawns (one per capital, spawnMask 1 = always active)

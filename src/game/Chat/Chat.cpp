@@ -1102,6 +1102,7 @@ ChatCommand* ChatHandler::getCommandTable()
 #ifdef BUILD_DEPRECATED_PLAYERBOT
         { "bot",            SEC_PLAYER,         false, &ChatHandler::HandlePlayerbotCommand,           "", nullptr },
 #endif
+        { "sync",           SEC_PLAYER,         false, &ChatHandler::HandleSyncCommand,                "", nullptr },
 
         { nullptr,             0,                  false, nullptr,                                           "", nullptr }
     };

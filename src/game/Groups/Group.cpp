@@ -444,6 +444,8 @@ uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
             if (IsRaidGroup())
                 player->UpdateForQuestWorldObjects();
 
+            player->ClearSync();
+
             WorldPacket data;
 
             if (method == 1)
@@ -522,6 +524,8 @@ void Group::Disband(bool hideDestroy)
         // quest related GO state dependent from raid membership
         if (IsRaidGroup())
             player->UpdateForQuestWorldObjects();
+
+        player->ClearSync();
 
         if (!player->GetSession())
             continue;

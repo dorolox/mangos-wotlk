@@ -8389,6 +8389,25 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellEntry const* spellInfo, Sp
     if (Player* modOwner = GetSpellModOwner())
         modOwner->ApplySpellMod(spellInfo->Id, damagetype == DOT ? SPELLMOD_DOT : SPELLMOD_DAMAGE, heal);
 
+    if (GetTypeId() == TYPEID_PLAYER)
+    {
+        float syncRatio = ((Player const*)this)->GetSyncRatio();
+        if (syncRatio < 1.0f)
+            heal *= syncRatio;
+    }
+    else if (GetTypeId() == TYPEID_UNIT && ((Creature const*)this)->IsPet())
+    {
+        if (Unit* owner = GetOwner())
+        {
+            if (owner->GetTypeId() == TYPEID_PLAYER)
+            {
+                float syncRatio = ((Player const*)owner)->GetSyncRatio();
+                if (syncRatio < 1.0f)
+                    heal *= syncRatio;
+            }
+        }
+    }
+
     return heal < 0 ? 0 : uint32(heal);
 }
 

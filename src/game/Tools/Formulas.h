@@ -169,11 +169,6 @@ namespace MaNGOS
             if (xp_gain == 0.0f)
                 return 0;
 
-            // Compensate for synced players: sqrt(realLevel/syncLevel) keeps reward
-            // slightly below what same-level content would give, preventing abuse
-            if (unit->GetEffectiveLevel() < unit->GetLevel())
-                xp_gain = uint32(xp_gain * std::sqrt(float(unit->GetLevel()) / float(unit->GetEffectiveLevel())));
-
             if (target->IsElite())
             {
                 if (target->GetMap()->IsNonRaidDungeon())

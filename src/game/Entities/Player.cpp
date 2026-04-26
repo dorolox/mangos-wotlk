@@ -3004,6 +3004,12 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
     if (level >= GetMaxAttainableLevel())
         return;
 
+    // Synced players earn proportionally more XP than a genuine low-level would,
+    // compensating for the real level's higher XP requirements.
+    // sqrt keeps the reward below same-level content to discourage abuse.
+    if (IsSynced() && victim)
+        xp = uint32(xp * std::sqrt(float(GetLevel()) / float(GetEffectiveLevel())));
+
     if (victim)
     {
         // handle SPELL_AURA_MOD_KILL_XP_PCT auras

@@ -151,27 +151,27 @@ crit chance by up to 40 pp.
 
 ### Player — XP gain
 
-`BaseGain()` is called with `GetEffectiveLevel()` (sync level) instead of real
-level, then a compensating multiplier is applied so the reward is meaningful
-relative to the real character's leveling needs:
+`BaseGain()` is called with `GetEffectiveLevel()` (sync level). After the
+server/custom rate is applied in `GiveXP`, a personal boost is added for the
+synced player only (does not affect genuine low-level group members):
 
 ```
-baseXP    = syncLevel × 5 + contentOffset
-finalXP   = baseXP × sqrt(realLevel / syncLevel)
+finalXP = baseXP × serverRate × sqrt(realLevel / syncLevel)
 ```
 
-The `sqrt` factor keeps the reward **below** what killing a same-level mob at
-real level would give, preventing abuse while still making synced content
-worthwhile. Example for level 46 synced to 6:
+`sqrt` keeps the reward below what killing a same-level mob gives while still
+making synced content meaningfully faster than pure sync-level progression.
+
+Example — level 48 synced to 5, group of 2, 3× server rate:
 
 ```
-baseXP  = 6×5 + 45 = 75
-factor  = sqrt(46/6) ≈ 2.77
-finalXP ≈ 208   vs   275 for a genuine same-level kill at level 46  (~76%)
+baseXP (split)           35
+× 3 server rate         105
+× sqrt(48/5) ≈ 3.1      326 XP   vs 427 XP for same-level group kill (~76%)
 ```
 
-If the sync level equals the real level (no sync active), the multiplier is 1
-and XP is unaffected.
+The boost is applied in `Player::GiveXP` so it is personal to the synced
+player — a genuine level-5 group partner receives normal XP unaffected.
 
 ---
 

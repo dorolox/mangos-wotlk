@@ -274,18 +274,6 @@ void Player::UpdateMaxHealth()
 void Player::UpdateMaxPower(Powers power)
 {
     Unit::UpdateMaxPower(power);
-    // Only mana scales with level; rage/energy/runic power have fixed caps
-    if (IsSynced() && power == POWER_MANA)
-    {
-        uint32 current = GetMaxPower(POWER_MANA);
-        if (current > 0)
-        {
-            uint32 newMax = std::max(1u, uint32(current * m_syncRatio));
-            SetMaxPower(POWER_MANA, newMax);
-            if (GetPower(POWER_MANA) > newMax)
-                SetPower(POWER_MANA, newMax);
-        }
-    }
 }
 
 void Player::ApplyFeralAPBonus(int32 amount, bool apply)

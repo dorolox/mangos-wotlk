@@ -274,15 +274,16 @@ void Player::UpdateMaxHealth()
 void Player::UpdateMaxPower(Powers power)
 {
     Unit::UpdateMaxPower(power);
-    if (IsSynced())
+    // Only mana scales with level; rage/energy/runic power have fixed caps
+    if (IsSynced() && power == POWER_MANA)
     {
-        uint32 current = GetMaxPower(power);
+        uint32 current = GetMaxPower(POWER_MANA);
         if (current > 0)
         {
             uint32 newMax = std::max(1u, uint32(current * m_syncRatio));
-            SetMaxPower(power, newMax);
-            if (GetPower(power) > newMax)
-                SetPower(power, newMax);
+            SetMaxPower(POWER_MANA, newMax);
+            if (GetPower(POWER_MANA) > newMax)
+                SetPower(POWER_MANA, newMax);
         }
     }
 }
@@ -809,6 +810,12 @@ void Player::UpdateManaRegen()
         power_regen_mp5 += GetStat(Stats(mod->m_miscvalue)) * mod->m_amount / 500.0f;
     }
 
+    if (IsSynced())
+    {
+        power_regen      *= m_syncRatio;
+        power_regen_mp5  *= m_syncRatio;
+    }
+
     // Set regen rate in cast state apply only on spirit based regen
     int32 modManaRegenInterrupt = GetTotalAuraModifier(SPELL_AURA_MOD_MANA_REGEN_INTERRUPT);
     if (modManaRegenInterrupt > 100)
@@ -1154,7 +1161,18 @@ void Pet::UpdateMaxHealth()
     value += GetModifierValue(unitMod, TOTAL_VALUE) + std::max((stamina - 20) * 10 + 20, 0.f);
     value *= GetModifierValue(unitMod, TOTAL_PCT);
 
-    SetMaxHealth((uint32)value);
+    if (Unit* owner = GetOwner())
+        if (owner->GetTypeId() == TYPEID_PLAYER)
+        {
+            float syncRatio = ((Player const*)owner)->GetSyncRatio();
+            if (syncRatio < 1.0f)
+                value *= syncRatio;
+        }
+
+    uint32 newMax = std::max(1u, uint32(value));
+    SetMaxHealth(newMax);
+    if (GetHealth() > newMax)
+        SetHealth(newMax);
 }
 
 void Pet::UpdateMaxPower(Powers power)
@@ -1202,6 +1220,15 @@ void Pet::UpdateAttackPowerAndDamage(bool ranged)
     if (GetUInt32Value(UNIT_CREATED_BY_SPELL) == 30146 && m_glyphedStat)
         attPowerMultiplier *= 1.2f;
     attPowerMultiplier -= 1.0f;
+
+    // Apply owner sync ratio to pet AP
+    if (Unit* owner = GetOwner())
+        if (owner->GetTypeId() == TYPEID_PLAYER)
+        {
+            float syncRatio = ((Player const*)owner)->GetSyncRatio();
+            if (syncRatio < 1.0f)
+                base_attPower *= syncRatio;
+        }
 
     // UNIT_FIELD_(RANGED)_ATTACK_POWER field
     SetInt32Value(UNIT_FIELD_ATTACK_POWER, (int32)base_attPower);

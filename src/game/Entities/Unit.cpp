@@ -4305,7 +4305,29 @@ float Unit::CalculateEffectiveCritChance(const Unit* victim, WeaponAttackType at
     const bool vsPlayerOrPet = victim->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
     const bool ranged = (attType == RANGED_ATTACK);
     // weapon skill does not benefit crit% vs NPCs
-    const uint32 skill = (weapon && !vsPlayerOrPet ? GetWeaponSkillValue(attType, victim) : GetSkillMaxForLevel(victim));
+    uint32 skill = (weapon && !vsPlayerOrPet ? GetWeaponSkillValue(attType, victim) : GetSkillMaxForLevel(victim));
+    // Synced players (and their pets) must not benefit from the skill gap their real level creates over low-level enemies
+    if (!vsPlayerOrPet)
+    {
+        if (GetTypeId() == TYPEID_PLAYER)
+        {
+            const Player* p = (const Player*)this;
+            if (p->IsSynced())
+                skill = std::min(skill, p->GetSyncLevel() * 5);
+        }
+        else if (GetTypeId() == TYPEID_UNIT && ((Creature const*)this)->IsPet())
+        {
+            if (Unit* owner = GetOwner())
+            {
+                if (owner->GetTypeId() == TYPEID_PLAYER)
+                {
+                    const Player* p = (const Player*)owner;
+                    if (p->IsSynced())
+                        skill = std::min(skill, p->GetSyncLevel() * 5);
+                }
+            }
+        }
+    }
     const int32 difference = int32(skill - victim->GetDefenseSkillValue(this));
     // Weapon skill factor: for players and NPCs
     float factor = 0.04f;
@@ -8181,6 +8203,25 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellSchoolMask schoolMask, Spel
     if (Player* modOwner = GetSpellModOwner())
         modOwner->ApplySpellMod(spellInfo->Id, damagetype == DOT ? SPELLMOD_DOT : SPELLMOD_DAMAGE, tmpDamage);
 
+    if (GetTypeId() == TYPEID_PLAYER)
+    {
+        float syncRatio = ((Player const*)this)->GetSyncRatio();
+        if (syncRatio < 1.0f)
+            tmpDamage *= syncRatio;
+    }
+    else if (GetTypeId() == TYPEID_UNIT && ((Creature const*)this)->IsPet())
+    {
+        if (Unit* owner = GetOwner())
+        {
+            if (owner->GetTypeId() == TYPEID_PLAYER)
+            {
+                float syncRatio = ((Player const*)owner)->GetSyncRatio();
+                if (syncRatio < 1.0f)
+                    tmpDamage *= syncRatio;
+            }
+        }
+    }
+
     return tmpDamage > 0 ? uint32(tmpDamage) : 0;
 }
 
@@ -8766,6 +8807,25 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
     {
         if (Player* modOwner = GetSpellModOwner())
             modOwner->ApplySpellMod(spellInfo->Id, damagetype == DOT ? SPELLMOD_DOT : SPELLMOD_DAMAGE, tmpDamage);
+    }
+
+    if (GetTypeId() == TYPEID_PLAYER)
+    {
+        float syncRatio = ((Player const*)this)->GetSyncRatio();
+        if (syncRatio < 1.0f)
+            tmpDamage *= syncRatio;
+    }
+    else if (GetTypeId() == TYPEID_UNIT && ((Creature const*)this)->IsPet())
+    {
+        if (Unit* owner = GetOwner())
+        {
+            if (owner->GetTypeId() == TYPEID_PLAYER)
+            {
+                float syncRatio = ((Player const*)owner)->GetSyncRatio();
+                if (syncRatio < 1.0f)
+                    tmpDamage *= syncRatio;
+            }
+        }
     }
 
     // bonus result can be negative

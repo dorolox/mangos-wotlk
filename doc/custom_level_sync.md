@@ -29,7 +29,9 @@ computed totals. No per-item or per-spell inspection.
 | System | Behaviour |
 |---|---|
 | Max HP | Scaled by ratio |
-| Max mana / energy / rage cap | Scaled by ratio |
+| Max mana | Scaled by ratio |
+| Max energy / rage / runic power | **Not scaled** — fixed caps, do not scale with level |
+| Mana regeneration (spirit + mp5) | Scaled by ratio — otherwise a synced healer would regen faster than they spend |
 | Attack power (melee & ranged) | Scaled by ratio |
 | Spell power | Scaled by ratio |
 | Armor | Scaled by ratio |
@@ -55,21 +57,130 @@ computed totals. No per-item or per-spell inspection.
 
 ## Scaling ratio
 
+When `.sync on` is activated, two values are stored on the player:
+
 ```
-ratio = syncLevel / realLevel
+m_syncLevel  = lowest online party member's level      (uint32)
+m_syncRatio  = float(m_syncLevel) / float(GetLevel())  (float, always in (0, 1])
+```
+
+`m_syncRatio` is computed once at activation and reused for every stat
+recalculation until sync is cleared. It represents the fraction of the player's
+real level that the sync level corresponds to.
+
+**Example — level 46 syncing to a level 6 party member:**
+
+```
+m_syncLevel = 6
+m_syncRatio = 6.0 / 46.0 ≈ 0.130
+
+Max HP 10 000  →  floor(10 000 × 0.130) = 1 300
+Max mana 8 000 →  floor(8 000  × 0.130) = 1 040
+Armor    5 000 →  floor(5 000  × 0.130) =   650
 ```
 
 Applied as a flat multiplier to the relevant totals after normal stat
-computation. For HP/mana the current value is clamped to the new max on
+computation. For HP and mana the current value is clamped to the new max on
 activation.
 
 A simple linear ratio is the starting point. If it turns out to feel wrong
 (e.g. a level 80 synced to 70 is still far too strong), a power curve can be
-introduced:
+introduced by changing `SetSync` to store:
 
 ```
-ratio = (syncLevel / realLevel) ^ k      -- k > 1 makes scaling more aggressive
+m_syncRatio = pow(float(syncLevel) / float(realLevel), k)   -- k > 1 makes scaling more aggressive
 ```
+
+---
+
+## Formulas by system
+
+All values are integers unless noted otherwise. `floor()` is implicit from
+integer truncation in the C++ casts.
+
+### Player — resources
+
+| System | Formula |
+|---|---|
+| Max HP | `newMax = max(1, floor(normalMaxHP × ratio))` — current HP clamped to newMax |
+| Max mana | `newMax = max(1, floor(normalMaxMana × ratio))` — current mana clamped to newMax |
+| Max energy | Unchanged — fixed 100 cap, does not scale with level |
+| Max rage | Unchanged — fixed 100 cap, does not scale with level |
+| Max runic power | Unchanged — fixed 100 cap, does not scale with level |
+| Max focus (pet window) | Not applicable to players |
+| Mana regen (spirit) | `finalRegen = floor(sqrt(Int) × OCTRegenMPPerSpirit × ratio)` |
+| Mana regen (mp5) | `finalMp5 = floor(mp5 × ratio)` |
+
+### Player — combat stats
+
+| System | Formula |
+|---|---|
+| Armor | `finalArmor = floor(computedArmor × ratio)` |
+| Resistances (all schools) | `finalRes = floor(computedRes × ratio)` |
+| Attack power (melee) | Level-based component recalculated with `syncLevel`; then `finalAP = floor(computedAP × ratio)` |
+| Attack power (ranged) | Same as melee — both use `GetEffectiveLevel()` in the level formula and then ratio is applied |
+
+Note: AP gets a **double reduction** — the per-level contribution is already
+lower because the level formula uses `syncLevel`, and then the ratio is applied
+on top of that whole value.
+
+### Player — damage and healing output
+
+These are applied inside the bonus functions, on the **already-computed** bonus
+value before it is added to the base hit/heal.
+
+| System | Formula |
+|---|---|
+| Spell power bonus (damage) | `DoneAdvertisedBenefit = floor(DoneAdvertisedBenefit × ratio)` — in `SpellBaseDamageBonusDone` |
+| Spell power bonus (healing) | `AdvertisedBenefit = floor(AdvertisedBenefit × ratio)` — in `SpellBaseHealingBonusDone` |
+| Total spell damage (final) | `finalDamage = floor(computedSpellDamage × ratio)` — in `SpellDamageBonusDone` |
+| Total melee damage (final) | `finalDamage = floor(computedMeleeDamage × ratio)` — in `MeleeDamageBonusDone` |
+
+Spell damage goes through both `SpellBaseDamageBonusDone` (power component) and
+`SpellDamageBonusDone` (final total). The ratio therefore applies **twice** for
+the spell power bonus portion — once to the additive bonus and once to the whole
+total that includes it.
+
+### Player — critical chance
+
+The weapon skill used in the crit formula is capped to `syncLevel × 5`:
+
+```
+effectiveSkill = min(weaponSkill, syncLevel × 5)
+critBonus      = (effectiveSkill - targetDefenseSkill) × 0.2%   (vs NPCs)
+```
+
+This prevents the skill gap (e.g. skill 230 vs NPC defense 30) from inflating
+crit chance by up to 40 pp.
+
+### Player — XP gain
+
+`BaseGain()` is called with `GetEffectiveLevel()` (sync level) instead of real
+level. The XP formula:
+
+```
+baseXP = syncLevel × 5 + contentOffset
+```
+
+This means a level-46 player synced to 6 earns XP as if they are level 6 —
+level-6 enemies are yellow/green rather than grey, and the XP amount is
+appropriate for the sync level.
+
+---
+
+## Pet formulas
+
+Pets (Hunter pets and Warlock demons) inherit the owner's ratio. Stats are
+re-evaluated whenever `SetSync` or `ClearSync` is called on the owner.
+
+| System | Formula |
+|---|---|
+| Pet max HP | `newMax = max(1, floor(computedPetHP × ownerRatio))` — in `Pet::UpdateMaxHealth` |
+| Pet attack power | `finalPetAP = floor(computedPetAP × ownerRatio)` — in `Pet::UpdateAttackPowerAndDamage` |
+| Pet spell damage (final) | `finalDamage = floor(computedSpellDamage × ownerRatio)` — in `SpellDamageBonusDone` |
+| Pet melee damage (final) | `finalDamage = floor(computedMeleeDamage × ownerRatio)` — in `MeleeDamageBonusDone` |
+| Pet critical chance | Weapon skill capped to `ownerSyncLevel × 5` — in `CalculateEffectiveCritChance` |
+| Pet max mana/energy/focus | **Not scaled** — pet power pools are based on the pet's own creature level |
 
 ---
 
@@ -110,13 +221,19 @@ Ratio applied at the end of each update function after normal computation:
 - `Player::UpdateArmor()` — armor value scaled by ratio.
 - `Player::UpdateResistances()` — each resistance scaled by ratio.
 
-### ✅ 3. Spell / healing output scaling (`src/game/Entities/Unit.cpp`)
+### ✅ 3. Spell / melee / healing output scaling (`src/game/Entities/Unit.cpp`)
 
 Rather than a synthetic aura, the ratio is applied directly inside:
 
-- `Unit::SpellBaseDamageBonusDone()` — scales the returned bonus when the unit
-  is a synced player (`GetSyncRatio() < 1.0`).
-- `Unit::SpellBaseHealingBonusDone()` — same pattern.
+- `Unit::SpellBaseDamageBonusDone()` — scales the spell power additive bonus.
+- `Unit::SpellDamageBonusDone()` — scales the final outgoing spell damage total.
+- `Unit::MeleeDamageBonusDone()` — scales the final outgoing melee damage total.
+- `Unit::SpellBaseHealingBonusDone()` — scales the healing power additive bonus.
+- `Unit::CalculateEffectiveCritChance()` — caps weapon skill to `syncLevel × 5`
+  to prevent the skill gap from inflating crit chance vs low-level NPCs.
+
+All five checks also cover pets: if `this` is a pet, the owner's ratio/sync
+level is used instead.
 
 ### ✅ 4. XP gain (`Player::GiveXP`)
 
@@ -148,9 +265,11 @@ Registered in `Chat.cpp` as `SEC_PLAYER`. Declared in `Chat.h`.
 - `Group::Disband()` — calls `ClearSync()` on every member.
 - `Group::RemoveMember()` — calls `ClearSync()` on the leaving player.
 
-### ✅ 8. Logout / disconnect (`src/game/Entities/Player.cpp`)
+### ✅ 8. Logout / disconnect (`src/game/Server/WorldSession.cpp`)
 
-`ClearSync()` called in `Player::RemoveFromWorld()`.
+`ClearSync()` called in `WorldSession::LogoutPlayer()` before `SaveToDB()`.
+`RemoveFromWorld()` is intentionally left alone — it fires on every map
+transition (teleport, instance enter) and must not clear sync.
 
 ---
 
@@ -192,10 +311,10 @@ The server-side level check uses `LFGDungeonExpansionStore` (DBC data), not the
 
 | File | Change |
 |---|---|
-| `src/game/Entities/Player.h` | New fields and helpers |
+| `src/game/Entities/Player.h` | New fields and helpers; `GetLevelForTarget` override |
 | `src/game/Entities/Player.cpp` | SetSync/ClearSync, GiveXP, RemoveFromWorld |
-| `src/game/Entities/StatSystem.cpp` | UpdateMaxHealth, UpdateMaxPower, UpdateAttackPowerAndDamage, UpdateArmor, UpdateResistances overrides |
-| `src/game/Entities/Unit.cpp` | SpellBaseDamageBonusDone, SpellBaseHealingBonusDone |
+| `src/game/Entities/StatSystem.cpp` | Player: UpdateMaxHealth, UpdateMaxPower, UpdateAttackPowerAndDamage, UpdateArmor, UpdateResistances, UpdateManaRegen; Pet: UpdateMaxHealth, UpdateAttackPowerAndDamage |
+| `src/game/Entities/Unit.cpp` | SpellBaseDamageBonusDone, SpellDamageBonusDone, MeleeDamageBonusDone, SpellBaseHealingBonusDone, CalculateEffectiveCritChance |
 | `src/game/Chat/Chat.h` | HandleSyncCommand declaration |
 | `src/game/Chat/Chat.cpp` | .sync registered in command table |
 | `src/game/Chat/Level0.cpp` | HandleSyncCommand implementation |

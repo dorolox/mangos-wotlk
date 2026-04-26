@@ -2486,8 +2486,6 @@ void Player::AddToWorld()
 
 void Player::RemoveFromWorld()
 {
-    ClearSync();
-
     // cleanup
     if (IsInWorld())
     {
@@ -2966,6 +2964,8 @@ void Player::SetSync(uint32 level)
     m_syncLevel = level;
     m_syncRatio = float(level) / float(GetLevel());
     UpdateAllStats();
+    if (Pet* pet = GetPet())
+        pet->UpdateAllStats();
 }
 
 void Player::ClearSync()
@@ -2975,6 +2975,8 @@ void Player::ClearSync()
     m_syncLevel = 0;
     m_syncRatio = 1.0f;
     UpdateAllStats();
+    if (Pet* pet = GetPet())
+        pet->UpdateAllStats();
 }
 
 void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)

@@ -1,18 +1,10 @@
--- Capital City Teleporter
--- Adds a gossip NPC in each racial capital that offers free teleportation
--- to the other capitals of the same faction.
---
--- Apply to: mangos world database
---
--- Creature entry: 190001
--- NPC text entry: 190001
--- Gossip menu entry: 190001
---
--- Note: DisplayId1 (19106) is a human female mage appearance.
--- Change it to any valid creature display ID you prefer.
---
--- Teleport destination coordinates are approximate city center locations.
--- Adjust NPC spawn positions (creature table) to taste.
+-- Adds a free-teleport gossip NPC in each racial capital (Alliance & Horde)
+
+-- -- Inserts creature_template entry 190001 (Capital City Teleporter),
+-- -- npc_text 190001, gossip_menu 190001, and 8 creature spawns
+-- -- (one per capital city). Safe to re-run: DELETEs before INSERTs.
+-- -- DisplayId1 (19106) can be changed to any valid creature display ID.
+-- -- Spawn coordinates are approximate city-center landmarks.
 
 -- ============================================================
 -- NPC greeting text
@@ -51,7 +43,7 @@ VALUES
      190001, 'npc_capital_teleporter');
 
 -- ============================================================
--- Creature spawns  (one per capital, spawnMask 1 = always active)
+-- Creature spawns (one per capital, spawnMask 1 = always active)
 -- Coordinates are approximate city center landmarks.
 -- ============================================================
 DELETE FROM `creature` WHERE `id` = 190001;
@@ -62,20 +54,20 @@ INSERT INTO `creature`
      `spawntimesecsmin`, `spawntimesecsmax`, `spawndist`, `MovementType`)
 VALUES
 -- Alliance capitals
--- Stormwind City (Map 0) – Trade District, near the fountain
+-- Stormwind City (Map 0) - Trade District, near the fountain
 (190001, 0, 1, 1,  -8825.0,   626.0,   94.0, 3.14, 120, 120, 0, 0),
--- Ironforge (Map 0) – The Commons, near the tram entrance
+-- Ironforge (Map 0) - The Commons, near the tram entrance
 (190001, 0, 1, 1,  -4841.0, -1045.0,  502.0, 1.15, 120, 120, 0, 0),
--- Darnassus (Map 1) – near the bank
+-- Darnassus (Map 1) - near the bank
 (190001, 1, 1, 1,   9951.6,  2280.9, 1341.4, 1.49, 120, 120, 0, 0),
--- The Exodar (Map 530) – Crystal Hall
+-- The Exodar (Map 530) - Crystal Hall
 (190001, 530, 1, 1, -3961.6,-11653.6, -137.7, 1.02, 120, 120, 0, 0),
 -- Horde capitals
--- Orgrimmar (Map 1) – Valley of Strength, near the bank
+-- Orgrimmar (Map 1) - Valley of Strength, near the bank
 (190001, 1, 1, 1,   1669.0, -4339.0,   62.0, 3.14, 120, 120, 0, 0),
--- Thunder Bluff (Map 1) – High Rise
+-- Thunder Bluff (Map 1) - High Rise
 (190001, 1, 1, 1,  -1270.0,    72.0,  128.5, 0.77, 120, 120, 0, 0),
--- Undercity (Map 0) – The Trade Quarter
+-- Undercity (Map 0) - The Trade Quarter
 (190001, 0, 1, 1,   1574.0,   239.0,  -52.0, 3.14, 120, 120, 0, 0),
--- Silvermoon City (Map 530) – Royal Exchange
+-- Silvermoon City (Map 530) - Royal Exchange
 (190001, 530, 1, 1,  9484.0, -7484.0,   14.0, 3.14, 120, 120, 0, 0);

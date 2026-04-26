@@ -31,7 +31,7 @@ computed totals. No per-item or per-spell inspection.
 | Max HP | Scaled by ratio |
 | Max mana | Scaled by ratio |
 | Max energy / rage / runic power | **Not scaled** — fixed caps, do not scale with level |
-| Mana regeneration (spirit + mp5) | Scaled by ratio — otherwise a synced healer would regen faster than they spend |
+| Mana regeneration (spirit + mp5) | **Not scaled** — pool reduction alone creates combat mana pressure; unscaled regen keeps OOC recovery feeling natural |
 | Attack power (melee & ranged) | Scaled by ratio |
 | Spell power | Scaled by ratio |
 | Armor | Scaled by ratio |
@@ -108,8 +108,7 @@ integer truncation in the C++ casts.
 | Max rage | Unchanged — fixed 100 cap, does not scale with level |
 | Max runic power | Unchanged — fixed 100 cap, does not scale with level |
 | Max focus (pet window) | Not applicable to players |
-| Mana regen (spirit) | `finalRegen = floor(sqrt(Int) × OCTRegenMPPerSpirit × ratio)` |
-| Mana regen (mp5) | `finalMp5 = floor(mp5 × ratio)` |
+| Mana regen (spirit + mp5) | Unchanged — fills the reduced pool ~(1/ratio)× faster than unsynced, which is acceptable |
 
 ### Player — combat stats
 
@@ -133,6 +132,7 @@ value before it is added to the base hit/heal.
 |---|---|
 | Spell power bonus (damage) | `DoneAdvertisedBenefit = floor(DoneAdvertisedBenefit × ratio)` — in `SpellBaseDamageBonusDone` |
 | Spell power bonus (healing) | `AdvertisedBenefit = floor(AdvertisedBenefit × ratio)` — in `SpellBaseHealingBonusDone` |
+| Total heal (final) | `finalHeal = floor(computedHeal × ratio)` — in `SpellHealingBonusDone` |
 | Total spell damage (final) | `finalDamage = floor(computedSpellDamage × ratio)` — in `SpellDamageBonusDone` |
 | Total melee damage (final) | `finalDamage = floor(computedMeleeDamage × ratio)` — in `MeleeDamageBonusDone` |
 
@@ -156,15 +156,26 @@ crit chance by up to 40 pp.
 ### Player — XP gain
 
 `BaseGain()` is called with `GetEffectiveLevel()` (sync level) instead of real
-level. The XP formula:
+level, then a compensating multiplier is applied so the reward is meaningful
+relative to the real character's leveling needs:
 
 ```
-baseXP = syncLevel × 5 + contentOffset
+baseXP    = syncLevel × 5 + contentOffset
+finalXP   = baseXP × sqrt(realLevel / syncLevel)
 ```
 
-This means a level-46 player synced to 6 earns XP as if they are level 6 —
-level-6 enemies are yellow/green rather than grey, and the XP amount is
-appropriate for the sync level.
+The `sqrt` factor keeps the reward **below** what killing a same-level mob at
+real level would give, preventing abuse while still making synced content
+worthwhile. Example for level 46 synced to 6:
+
+```
+baseXP  = 6×5 + 45 = 75
+factor  = sqrt(46/6) ≈ 2.77
+finalXP ≈ 208   vs   275 for a genuine same-level kill at level 46  (~76%)
+```
+
+If the sync level equals the real level (no sync active), the multiplier is 1
+and XP is unaffected.
 
 ---
 
@@ -229,6 +240,7 @@ Rather than a synthetic aura, the ratio is applied directly inside:
 - `Unit::SpellDamageBonusDone()` — scales the final outgoing spell damage total.
 - `Unit::MeleeDamageBonusDone()` — scales the final outgoing melee damage total.
 - `Unit::SpellBaseHealingBonusDone()` — scales the healing power additive bonus.
+- `Unit::SpellHealingBonusDone()` — scales the final outgoing heal total.
 - `Unit::CalculateEffectiveCritChance()` — caps weapon skill to `syncLevel × 5`
   to prevent the skill gap from inflating crit chance vs low-level NPCs.
 
@@ -313,8 +325,8 @@ The server-side level check uses `LFGDungeonExpansionStore` (DBC data), not the
 |---|---|
 | `src/game/Entities/Player.h` | New fields and helpers; `GetLevelForTarget` override |
 | `src/game/Entities/Player.cpp` | SetSync/ClearSync, GiveXP, RemoveFromWorld |
-| `src/game/Entities/StatSystem.cpp` | Player: UpdateMaxHealth, UpdateMaxPower, UpdateAttackPowerAndDamage, UpdateArmor, UpdateResistances, UpdateManaRegen; Pet: UpdateMaxHealth, UpdateAttackPowerAndDamage |
-| `src/game/Entities/Unit.cpp` | SpellBaseDamageBonusDone, SpellDamageBonusDone, MeleeDamageBonusDone, SpellBaseHealingBonusDone, CalculateEffectiveCritChance |
+| `src/game/Entities/StatSystem.cpp` | Player: UpdateMaxHealth, UpdateMaxPower, UpdateAttackPowerAndDamage, UpdateArmor, UpdateResistances; Pet: UpdateMaxHealth, UpdateAttackPowerAndDamage |
+| `src/game/Entities/Unit.cpp` | SpellBaseDamageBonusDone, SpellDamageBonusDone, MeleeDamageBonusDone, SpellBaseHealingBonusDone, SpellHealingBonusDone, CalculateEffectiveCritChance |
 | `src/game/Chat/Chat.h` | HandleSyncCommand declaration |
 | `src/game/Chat/Chat.cpp` | .sync registered in command table |
 | `src/game/Chat/Level0.cpp` | HandleSyncCommand implementation |

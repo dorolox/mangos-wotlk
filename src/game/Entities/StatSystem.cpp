@@ -810,12 +810,6 @@ void Player::UpdateManaRegen()
         power_regen_mp5 += GetStat(Stats(mod->m_miscvalue)) * mod->m_amount / 500.0f;
     }
 
-    if (IsSynced())
-    {
-        power_regen      *= m_syncRatio;
-        power_regen_mp5  *= m_syncRatio;
-    }
-
     // Set regen rate in cast state apply only on spirit based regen
     int32 modManaRegenInterrupt = GetTotalAuraModifier(SPELL_AURA_MOD_MANA_REGEN_INTERRUPT);
     if (modManaRegenInterrupt > 100)

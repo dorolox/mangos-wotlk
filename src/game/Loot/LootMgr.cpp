@@ -2461,7 +2461,7 @@ void Loot::ApplyItemCountMultiplier(uint32 maxMultiplier)
     {
         if (!lootItem->itemProto || lootItem->itemProto->InventoryType != INVTYPE_NON_EQUIP)
             continue;
-        if (lootItem->needs_quest || lootItem->itemProto->Class == ITEM_CLASS_QUEST)
+        if (lootItem->lootItemType == LOOTITEM_TYPE_QUEST || lootItem->itemProto->Class == ITEM_CLASS_QUEST)
             continue;
         lootItem->count *= urand(1, maxMultiplier);
     }

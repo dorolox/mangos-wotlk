@@ -156,18 +156,18 @@ server/custom rate is applied in `GiveXP`, a personal boost is added for the
 synced player only (does not affect genuine low-level group members):
 
 ```
-finalXP = baseXP × serverRate × sqrt(realLevel / syncLevel)
+finalXP = baseXP × serverRate × cbrt(realLevel / syncLevel)
 ```
 
-`sqrt` keeps the reward below what killing a same-level mob gives while still
-making synced content meaningfully faster than pure sync-level progression.
+The cube root keeps the boost moderate even at extreme level gaps (e.g. 80→1
+gives ~4.3× instead of ~8.9× that sqrt would yield).
 
-Example — level 48 synced to 5, group of 2, 3× server rate:
+Example — level 48 synced to 8, group of 2, 3× server rate:
 
 ```
-baseXP (split)           35
-× 3 server rate         105
-× sqrt(48/5) ≈ 3.1      326 XP   vs 427 XP for same-level group kill (~76%)
+baseXP (split)           43
+× 3 server rate         129
+× cbrt(48/8) ≈ 1.82     235 XP   vs 255 XP for same-level solo kill (~92%)
 ```
 
 The boost is applied in `Player::GiveXP` so it is personal to the synced

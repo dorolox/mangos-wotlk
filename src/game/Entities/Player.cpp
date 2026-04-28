@@ -3006,9 +3006,9 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
 
     // Synced players earn proportionally more XP than a genuine low-level would,
     // compensating for the real level's higher XP requirements.
-    // sqrt keeps the reward below same-level content to discourage abuse.
+    // Cube root keeps the boost moderate even at extreme level gaps (e.g. 80->1 gives ~4x not ~9x).
     if (IsSynced() && victim)
-        xp = uint32(xp * std::sqrt(float(GetLevel()) / float(GetEffectiveLevel())));
+        xp = uint32(xp * std::pow(float(GetLevel()) / float(GetEffectiveLevel()), 1.0f / 3.0f));
 
     if (victim)
     {

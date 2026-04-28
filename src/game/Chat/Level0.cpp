@@ -412,3 +412,28 @@ bool ChatHandler::HandleSyncCommand(char* args)
     PSendSysMessage("Usage: .sync on | .sync off | .sync show");
     return true;
 }
+
+bool ChatHandler::HandlePetResetCommand(char* args)
+{
+    Player* player = m_session->GetPlayer();
+    if (!player)
+        return false;
+
+    if (!*args || strcmp(args, "reset") != 0)
+    {
+        PSendSysMessage("Usage: .pet reset");
+        return true;
+    }
+
+    Pet* pet = player->GetPet();
+    if (!pet)
+    {
+        SendSysMessage("You don't have a pet.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    Position pos = Pet::GetPetSpawnPosition(player);
+    pet->NearTeleportTo(pos.x, pos.y, pos.z, player->GetOrientation());
+    return true;
+}

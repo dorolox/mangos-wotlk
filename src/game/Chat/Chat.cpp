@@ -1103,6 +1103,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "bot",            SEC_PLAYER,         false, &ChatHandler::HandlePlayerbotCommand,           "", nullptr },
 #endif
         { "sync",           SEC_PLAYER,         false, &ChatHandler::HandleSyncCommand,                "", nullptr },
+        { "pet",            SEC_PLAYER,         false, &ChatHandler::HandlePetResetCommand,            "", nullptr },
 
         { nullptr,             0,                  false, nullptr,                                           "", nullptr }
     };

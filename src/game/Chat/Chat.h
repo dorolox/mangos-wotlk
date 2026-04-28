@@ -715,6 +715,7 @@ class ChatHandler
         // KST add xp function command
         bool HandleXPCommand(char* args);
         bool HandleSyncCommand(char* args);
+        bool HandlePetResetCommand(char* args);
 
         bool HandleNamegoCommand(char* args);
         bool HandleGonameCommand(char* args);

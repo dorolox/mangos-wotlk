@@ -1015,6 +1015,12 @@ void LFGMgr::TeleportPlayer(Player* player, bool out, bool fromOpcode /*= false*
         if (!player->TeleportTo(mapid, x, y, z, orientation))
             error = LFG_TELEPORTERROR_INVALID_LOCATION;
     }
+    else if (player->GetLfgData().GetState() == LFG_STATE_FINISHED_DUNGEON)
+    {
+        // Dungeon is finished: client shows "Teleport to Dungeon" (out=false) but player is
+        // still inside. Redirect to teleport-out so they can return to their entry point.
+        player->TeleportToBGEntryPoint();
+    }
     else
         error = LFG_TELEPORTERROR_INVALID_LOCATION;
 

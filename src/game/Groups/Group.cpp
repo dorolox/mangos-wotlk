@@ -679,10 +679,7 @@ void Group::SendUpdateTo(Player* player)
         data << uint8(player->GetLfgData().GetPlayerRoles()); // lfg roles
         if (m_groupFlags & GROUP_FLAG_LFG)
         {
-            // Send state=2 (finished) only after the player has left the dungeon, so the client
-            // keeps showing "Leave Dungeon" (out=true) while they are still inside.
-            bool lfgFinished = player->GetLfgData().GetState() == LFG_STATE_FINISHED_DUNGEON && !player->GetMap()->IsDungeon();
-            data << uint8(lfgFinished ? 2 : 0);
+            data << uint8(player->GetLfgData().GetState() == LFG_STATE_FINISHED_DUNGEON ? 2 : 0);
             data << uint32(player->GetLfgData().GetDungeon());
         }
         data << GetObjectGuid();                            // group guid

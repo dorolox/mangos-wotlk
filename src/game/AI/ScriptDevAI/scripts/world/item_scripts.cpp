@@ -25,12 +25,18 @@ EndScriptData */
 item_arcane_charges                 Prevent use if player is not flying (cannot cast while on ground)
 item_flying_machine(i34060,i34061)  Engineering crafted flying machines
 item_gor_dreks_ointment(i30175)     Protecting Our Own(q10488)
+item_scroll_of_mentorship(i90001)             Reinitializes bots in the caster's sub-group to the caster's current level
+item_scroll_of_mentorship_raid(i90002)        Reinitializes all bots in the caster's raid to the caster's current level
+item_scroll_of_enhancement_azeroth(i90003)    Upgrades gear of group bots level 1-60
+item_scroll_of_enhancement_outland(i90004)    Upgrades gear of group bots level 1-70
+item_scroll_of_enhancement_northrend(i90005)  Upgrades gear of group bots level 1-80
 EndContentData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "Spells/Spell.h"
 #include "Spells/Scripts/SpellScript.h"
 #include "Spells/SpellAuras.h"
+#include "Groups/Group.h"
 
 
 /*#####
@@ -567,6 +573,148 @@ struct Area52Transporter : public SpellScript
     }
 };
 
+/*#####
+# item_scroll_of_mentorship
+#####*/
+
+bool ItemUse_scroll_of_mentorship(Player* pPlayer, Item* pItem, const SpellCastTargets& /*pTargets*/)
+{
+#ifdef ENABLE_PLAYERBOTS
+    Group* pGroup = pPlayer->GetGroup();
+    if (!pGroup)
+    {
+        pPlayer->SendEquipError(EQUIP_ERR_NONE, pItem, nullptr);
+        return true;
+    }
+
+    uint32 casterLevel = pPlayer->GetLevel();
+    bool anyBotFound = false;
+
+    uint8 casterSubGroup = pPlayer->GetSubGroup();
+    for (GroupReference* itr = pGroup->GetFirstMember(); itr != nullptr; itr = itr->next())
+    {
+        Player* pMember = itr->getSource();
+        if (!pMember || pMember == pPlayer)
+            continue;
+        if (pGroup->IsRaidGroup() && itr->getSubGroup() != casterSubGroup)
+            continue;
+        if (!pMember->GetPlayerbotAI())
+            continue;
+        pMember->InitBotToLevel(casterLevel);
+        anyBotFound = true;
+    }
+
+    if (!anyBotFound)
+    {
+        pPlayer->SendEquipError(EQUIP_ERR_NONE, pItem, nullptr);
+        return true;
+    }
+
+    pPlayer->DestroyItemCount(pItem->GetEntry(), 1, true);
+    return true;
+#else
+    return false;
+#endif
+}
+
+/*#####
+# item_scroll_of_enhancement (shared helper + 3 wrappers)
+#####*/
+
+static bool ScrollUpgradeGroupBots(Player* pPlayer, Item* pItem, uint32 minLevel, uint32 maxLevel)
+{
+#ifdef ENABLE_PLAYERBOTS
+    Group* pGroup = pPlayer->GetGroup();
+    if (!pGroup)
+    {
+        pPlayer->SendEquipError(EQUIP_ERR_NONE, pItem, nullptr);
+        return true;
+    }
+
+    bool anyBotFound = false;
+    for (GroupReference* itr = pGroup->GetFirstMember(); itr != nullptr; itr = itr->next())
+    {
+        Player* pMember = itr->getSource();
+        if (!pMember || pMember == pPlayer)
+            continue;
+        if (!pMember->GetPlayerbotAI())
+            continue;
+        uint32 botLevel = pMember->GetLevel();
+        if (botLevel < minLevel || botLevel > maxLevel)
+            continue;
+        pMember->UpgradeBotGear();
+        anyBotFound = true;
+    }
+
+    if (!anyBotFound)
+    {
+        pPlayer->SendEquipError(EQUIP_ERR_NONE, pItem, nullptr);
+        return true;
+    }
+
+    pPlayer->DestroyItemCount(pItem->GetEntry(), 1, true);
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool ItemUse_scroll_of_enhancement_azeroth(Player* pPlayer, Item* pItem, const SpellCastTargets& /*pTargets*/)
+{
+    return ScrollUpgradeGroupBots(pPlayer, pItem, 1, 60);
+}
+
+bool ItemUse_scroll_of_enhancement_outland(Player* pPlayer, Item* pItem, const SpellCastTargets& /*pTargets*/)
+{
+    return ScrollUpgradeGroupBots(pPlayer, pItem, 1, 70);
+}
+
+bool ItemUse_scroll_of_enhancement_northrend(Player* pPlayer, Item* pItem, const SpellCastTargets& /*pTargets*/)
+{
+    return ScrollUpgradeGroupBots(pPlayer, pItem, 1, 80);
+}
+
+/*#####
+# item_scroll_of_mentorship_raid
+#####*/
+
+bool ItemUse_scroll_of_mentorship_raid(Player* pPlayer, Item* pItem, const SpellCastTargets& /*pTargets*/)
+{
+#ifdef ENABLE_PLAYERBOTS
+    Group* pGroup = pPlayer->GetGroup();
+    if (!pGroup)
+    {
+        pPlayer->SendEquipError(EQUIP_ERR_NONE, pItem, nullptr);
+        return true;
+    }
+
+    uint32 casterLevel = pPlayer->GetLevel();
+    bool anyBotFound = false;
+
+    for (GroupReference* itr = pGroup->GetFirstMember(); itr != nullptr; itr = itr->next())
+    {
+        Player* pMember = itr->getSource();
+        if (!pMember || pMember == pPlayer)
+            continue;
+        if (!pMember->GetPlayerbotAI())
+            continue;
+        pMember->InitBotToLevel(casterLevel);
+        anyBotFound = true;
+    }
+
+    if (!anyBotFound)
+    {
+        pPlayer->SendEquipError(EQUIP_ERR_NONE, pItem, nullptr);
+        return true;
+    }
+
+    pPlayer->DestroyItemCount(pItem->GetEntry(), 1, true);
+    return true;
+#else
+    return false;
+#endif
+}
+
 void AddSC_item_scripts()
 {
     Script* pNewScript = new Script;
@@ -613,4 +761,29 @@ void AddSC_item_scripts()
     RegisterSpellScript<EverlookTransporter>("spell_everlook_transporter");
     RegisterSpellScript<ToshleysStationTransporter>("spell_toshleys_station_transporter");
     RegisterSpellScript<Area52Transporter>("spell_area52_transporter");
+
+    pNewScript = new Script;
+    pNewScript->Name = "item_scroll_of_enhancement_azeroth";
+    pNewScript->pItemUse = &ItemUse_scroll_of_enhancement_azeroth;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "item_scroll_of_enhancement_outland";
+    pNewScript->pItemUse = &ItemUse_scroll_of_enhancement_outland;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "item_scroll_of_enhancement_northrend";
+    pNewScript->pItemUse = &ItemUse_scroll_of_enhancement_northrend;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "item_scroll_of_mentorship";
+    pNewScript->pItemUse = &ItemUse_scroll_of_mentorship;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "item_scroll_of_mentorship_raid";
+    pNewScript->pItemUse = &ItemUse_scroll_of_mentorship_raid;
+    pNewScript->RegisterSelf();
 }

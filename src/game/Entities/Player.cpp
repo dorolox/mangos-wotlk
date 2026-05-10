@@ -79,6 +79,7 @@
 #ifdef ENABLE_PLAYERBOTS
 #include "playerbot/playerbot.h"
 #include "playerbot/PlayerbotAIConfig.h"
+#include "playerbot/PlayerbotFactory.h"
 #endif
 
 #include <cmath>
@@ -26021,3 +26022,21 @@ void Player::SetPet(Unit* pet)
     Unit::SetPet(pet);
     ApplyModByteFlag(PLAYER_FIELD_BYTES, PLAYER_FIELD_BYTES_OFFSET_FLAGS, PLAYER_FIELD_BYTE_CONTROLLING_PET, pet != nullptr);
 }
+
+#ifdef ENABLE_PLAYERBOTS
+void Player::InitBotToLevel(uint32 level)
+{
+    if (!GetPlayerbotAI())
+        return;
+    PlayerbotFactory factory(this, level, ITEM_QUALITY_NORMAL);
+    factory.Randomize(true, false);
+}
+
+void Player::UpgradeBotGear()
+{
+    if (!GetPlayerbotAI())
+        return;
+    PlayerbotFactory factory(this, GetLevel(), ITEM_QUALITY_NORMAL);
+    factory.UpgradeGear(false);
+}
+#endif

@@ -1,26 +1,25 @@
--- Scrolls of Enhancement — upgrade the gear of all bots in the caster's group
+-- Scrolls of Enhancement -- upgrade the gear of all bots in the caster's group
 -- that fall within a specific level range, without changing their level or spells.
 -- Equivalent to ".bot upgrade" but scoped by expansion level band.
 -- Only affects AI bots (not real players).
 --
--- i90003 — Scroll of Enhancement: Azeroth  (bots level  1-60) —  50 gold
--- i90004 — Scroll of Enhancement: Outland  (bots level  1-70) — 100 gold
--- i90005 — Scroll of Enhancement: Northrend(bots level  1-80) — 150 gold
+-- i90003 -- Scroll of Enhancement: Azeroth  (bots level  1-60) --  50 gold
+-- i90004 -- Scroll of Enhancement: Outland  (bots level  1-70) -- 100 gold
+-- i90005 -- Scroll of Enhancement: Northrend(bots level  1-80) -- 150 gold
 --
 -- Requires server built with ENABLE_PLAYERBOTS.
 -- Scripts: item_scroll_of_enhancement_azeroth/outland/northrend (item_scripts.cpp)
 
 -- ============================================================
--- Server-side trigger spells (self-cast dummies; not in client DBC)
+-- Server-side trigger spells (self-cast dummies; IsServerSide=1, not in client DBC)
+-- The item script intercepts before the spell fires.
 -- ============================================================
-DELETE FROM `spell_template` WHERE `id` IN (90003, 90004, 90005);
-INSERT INTO `spell_template` VALUES
-(90003, 0, 0, 0, 0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0,
- 'Scroll of Enhancement: Azeroth - upgrade gear of group bots lv 1-60'),
-(90004, 0, 0, 0, 0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0,
- 'Scroll of Enhancement: Outland - upgrade gear of group bots lv 1-70'),
-(90005, 0, 0, 0, 0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0,
- 'Scroll of Enhancement: Northrend - upgrade gear of group bots lv 1-80');
+DELETE FROM `spell_template` WHERE `Id` IN (90003, 90004, 90005);
+INSERT INTO `spell_template` (`Id`, `Effect1`, `EffectImplicitTargetA1`, `IsServerSide`, `SpellName`)
+VALUES
+(90003, 3, 1, 1, 'Scroll of Enhancement: Azeroth - upgrade gear of group bots lv 1-60'),
+(90004, 3, 1, 1, 'Scroll of Enhancement: Outland - upgrade gear of group bots lv 1-70'),
+(90005, 3, 1, 1, 'Scroll of Enhancement: Northrend - upgrade gear of group bots lv 1-80');
 
 -- ============================================================
 -- Item templates

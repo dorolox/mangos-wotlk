@@ -1,33 +1,27 @@
--- Scroll of Mentorship — reinitializes all bot members in the user's party/sub-group
+-- Scroll of Mentorship -- reinitializes all bot members in the user's party/sub-group
 -- to the caster's current level (same logic as ".bot init" but uses the
 -- player's own level instead of the master's).
 -- In a raid, only bots in the caster's sub-group (5-man) are affected.
 -- Sold by the custom vendor (entry 190002) for 20 gold.
 --
--- Scroll of Mentorship (Raid) — same effect but covers the entire raid.
+-- Scroll of Mentorship (Raid) -- same effect but covers the entire raid.
 -- Sold by the custom vendor (entry 190002) for 100 gold.
 --
 -- Requires server built with ENABLE_PLAYERBOTS.
 -- Scripts: item_scroll_of_mentorship / item_scroll_of_mentorship_raid (item_scripts.cpp)
 
 -- ============================================================
--- Server-side trigger spell (self-cast dummy; not in client DBC)
--- The item script intercepts before the spell fires — this entry
--- only provides the server with targeting metadata.
--- Columns: id, attr, attr_ex, attr_ex2, attr_ex3,
---          proc_flags, proc_chance, duration_index,
---          effect0, effect0_implicit_target_a, effect0_implicit_target_b,
---          effect0_radius_idx, effect0_apply_aura_name,
---          effect0_misc_value, effect0_misc_value_b, effect0_trigger_spell,
---          comments
+-- Server-side trigger spells (self-cast dummies; IsServerSide=1, not in client DBC)
+-- The item script intercepts before the spell fires.
 -- ============================================================
-DELETE FROM `spell_template` WHERE `id` = 90001;
-INSERT INTO `spell_template` VALUES
-(90001, 0, 0, 0, 0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0,
- 'Scroll of Mentorship - reinit group bots to caster level');
+DELETE FROM `spell_template` WHERE `Id` IN (90001, 90002);
+INSERT INTO `spell_template` (`Id`, `Effect1`, `EffectImplicitTargetA1`, `IsServerSide`, `SpellName`)
+VALUES
+(90001, 3, 1, 1, 'Scroll of Mentorship - reinit group bots to caster level'),
+(90002, 3, 1, 1, 'Scroll of Mentorship (Raid) - reinit all raid bots to caster level');
 
 -- ============================================================
--- Item template
+-- Item template (party scroll)
 -- class 0 = Consumable, subclass 3 = Other
 -- Quality 2 = Uncommon (green)
 -- BuyPrice 200000 = 20 gold (in copper). SellPrice = 25% of that.
@@ -55,15 +49,7 @@ VALUES
      'item_scroll_of_mentorship');
 
 -- ============================================================
--- Raid scroll — spell_template
--- ============================================================
-DELETE FROM `spell_template` WHERE `id` = 90002;
-INSERT INTO `spell_template` VALUES
-(90002, 0, 0, 0, 0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0,
- 'Scroll of Mentorship (Raid) - reinit all raid bots to caster level');
-
--- ============================================================
--- Raid scroll — item template
+-- Item template (raid scroll)
 -- BuyPrice 1000000 = 100 gold (in copper). SellPrice = 25% of that.
 -- stackable 3
 -- ============================================================

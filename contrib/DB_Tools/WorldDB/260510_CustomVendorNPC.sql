@@ -5,7 +5,6 @@
 --   Neutral  : Dalaran (WotLK)
 -- Shattrath excluded — no Auction House present.
 --
--- !! Coordinates are approximate. Verify and fine-tune in-game. !!
 -- !! DisplayId1 (19106) is a placeholder — swap to the desired model. !!
 -- !! NpcFlags = 128 (VENDOR). Add GOSSIP (|1 = 129) if a greeting text is needed. !!
 
@@ -37,25 +36,25 @@ INSERT INTO `creature`
 VALUES
 -- Alliance capitals
 -- Stormwind City (Map 0) — Trade District, near Auction House
-(190002, 0,   1, 1,  -8815.0,   650.0,   93.8, 3.14, 120, 120, 0, 0),
+(190002, 0,   1, 1,  -8812.057617,   654.041138,   96.195740, 4.509317, 120, 120, 0, 0),
 -- Ironforge (Map 0) — The Commons, near Auction House
-(190002, 0,   1, 1,  -4893.0, -1064.0,  501.9, 1.15, 120, 120, 0, 0),
--- Darnassus (Map 1) — Craftsmen's Terrace, near Auction House
-(190002, 1,   1, 1,   9963.0,  2171.0, 1342.0, 4.71, 120, 120, 0, 0),
--- The Exodar (Map 530) — The Vault of Lights, near Auction House
-(190002, 530, 1, 1,  -3961.0,-11561.0, -138.0, 1.57, 120, 120, 0, 0),
+(190002, 0,   1, 1,  -4917.367676,  -980.787537,  501.449463, 2.242305, 120, 120, 0, 0),
+-- Darnassus (Map 1) — Tradesmen's Terrace, near Auction House
+(190002, 1,   1, 1,   9872.599609,  2341.729980, 1321.670044, 3.525560, 120, 120, 0, 0),
+-- The Exodar (Map 530) — Seat of the Naaru, near Auction House
+(190002, 530, 1, 1,  -3973.518799,-11695.068359, -139.163284, 0.247400, 120, 120, 0, 0),
 -- Horde capitals
 -- Orgrimmar (Map 1) — Valley of Strength, near Auction House
-(190002, 1,   1, 1,   1655.0, -4447.0,   61.7, 3.14, 120, 120, 0, 0),
+(190002, 1,   1, 1,   1664.354248, -4430.434082,   17.674257, 1.765528, 120, 120, 0, 0),
 -- Thunder Bluff (Map 1) — Middle Rise, near Auction House
-(190002, 1,   1, 1,  -1271.0,    87.0,  128.0, 0.77, 120, 120, 0, 0),
--- Undercity (Map 0) — The Trade Quarter, near Auction House
-(190002, 0,   1, 1,   1652.0,   237.0,  -52.0, 3.14, 120, 120, 0, 0),
--- Silvermoon City (Map 530) — Royal Exchange, near Auction House
-(190002, 530, 1, 1,   9484.0, -7484.0,   14.0, 3.14, 120, 120, 0, 0),
+(190002, 1,   1, 1,  -1271.000000,    87.000000,  128.000000, 0.770000, 120, 120, 0, 0),
+-- Undercity (Map 0) — The Canals, near Auction House
+(190002, 0,   1, 1,   1648.170044,   224.173004,  -56.794800, 4.223700, 120, 120, 0, 0),
+-- Silvermoon City (Map 530) — The Bazaar, near Auction House
+(190002, 530, 1, 1,   9677.928711, -7136.337891,   14.324089, 0.003639, 120, 120, 0, 0),
 -- WotLK neutral capital
--- Dalaran (Map 571) — The Eventide, near Auction House
-(190002, 571, 1, 1,   5762.0,   690.0,  641.0, 1.57, 120, 120, 0, 0);
+-- Dalaran (Map 571) — Runeweaver Square, near Auction House
+(190002, 571, 1, 1,   5804.700195,   633.228027,  647.630005, 0.174533, 120, 120, 0, 0);
 
 -- ============================================================
 -- Vendor items — populated when custom items are created

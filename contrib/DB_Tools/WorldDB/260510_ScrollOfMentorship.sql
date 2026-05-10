@@ -38,7 +38,7 @@ INSERT INTO `item_template`
      `spellcooldown_1`, `spellcategory_1`, `spellcategorycooldown_1`,
      `bonding`, `description`, `ScriptName`)
 VALUES
-    (90001, 0, 3, -1, 'Scroll of Mentorship', 2530,
+    (90001, 0, 3, -1, 'Scroll of Mentorship', 3331,
      2, 1, 200000, 50000,
      -1, -1,
      5,
@@ -63,7 +63,7 @@ INSERT INTO `item_template`
      `spellcooldown_1`, `spellcategory_1`, `spellcategorycooldown_1`,
      `bonding`, `description`, `ScriptName`)
 VALUES
-    (90002, 0, 3, -1, 'Scroll of Mentorship (Raid)', 2530,
+    (90002, 0, 3, -1, 'Scroll of Mentorship (Raid)', 3331,
      2, 1, 1000000, 250000,
      -1, -1,
      3,

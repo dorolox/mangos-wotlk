@@ -39,7 +39,7 @@ INSERT INTO `item_template`
      `bonding`, `description`, `ScriptName`)
 VALUES
 -- 50 gold
-(90003, 0, 3, -1, 'Scroll of Enhancement: Azeroth', 2530,
+(90003, 0, 3, -1, 'Scroll of Enhancement: Azeroth', 3331,
  2, 1, 500000, 125000,
  -1, -1,
  5,
@@ -49,7 +49,7 @@ VALUES
  'Upgrades the gear of all bots (level 1-60) in your group to better suit their current level.',
  'item_scroll_of_enhancement_azeroth'),
 -- 100 gold
-(90004, 0, 3, -1, 'Scroll of Enhancement: Outland', 2530,
+(90004, 0, 3, -1, 'Scroll of Enhancement: Outland', 3331,
  2, 1, 1000000, 250000,
  -1, -1,
  5,
@@ -59,7 +59,7 @@ VALUES
  'Upgrades the gear of all bots (level 1-70) in your group to better suit their current level.',
  'item_scroll_of_enhancement_outland'),
 -- 150 gold
-(90005, 0, 3, -1, 'Scroll of Enhancement: Northrend', 2530,
+(90005, 0, 3, -1, 'Scroll of Enhancement: Northrend', 3331,
  2, 1, 1500000, 375000,
  -1, -1,
  5,

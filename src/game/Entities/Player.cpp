@@ -26107,15 +26107,18 @@ void Player::InitBotToLevel(uint32 level)
 {
     if (!GetPlayerbotAI())
         return;
-    PlayerbotFactory factory(this, level, ITEM_QUALITY_NORMAL);
-    factory.Randomize(true, false);
+    // ITEM_QUALITY_NORMAL (white) has no armour at level 60+ — use green as minimum.
+    // incremental=false so InitEquipment clears existing gear before re-equipping.
+    PlayerbotFactory factory(this, level, ITEM_QUALITY_UNCOMMON);
+    factory.Randomize(false, false);
 }
 
 void Player::UpgradeBotGear()
 {
     if (!GetPlayerbotAI())
         return;
-    PlayerbotFactory factory(this, GetLevel(), ITEM_QUALITY_NORMAL);
+    // ITEM_QUALITY_POOR (0) → setQuality=false → searches all quality tiers for upgrades.
+    PlayerbotFactory factory(this, GetLevel(), ITEM_QUALITY_POOR);
     factory.UpgradeGear(false);
 }
 #endif

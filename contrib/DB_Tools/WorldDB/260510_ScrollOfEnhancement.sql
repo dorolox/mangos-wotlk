@@ -9,10 +9,14 @@
 --
 -- Requires server built with ENABLE_PLAYERBOTS.
 -- Scripts: item_scroll_of_enhancement_azeroth/outland/northrend (item_scripts.cpp)
+--
+-- spellid_1 uses our own custom spell IDs (90003/90004/90005).
+-- These exist in the server's spell_template AND in the client's Spell.dbc
+-- after running contrib/client_tools/patch_custom_spells.py.
 
 -- ============================================================
--- Server-side trigger spells (self-cast dummies; IsServerSide=1, not in client DBC)
--- The item script intercepts before the spell fires.
+-- Server-side trigger spells (IsServerSide=1)
+-- Also added to client Spell.dbc via patch_custom_spells.py
 -- ============================================================
 DELETE FROM `spell_template` WHERE `Id` IN (90003, 90004, 90005);
 INSERT INTO `spell_template` (`Id`, `Effect1`, `EffectImplicitTargetA1`, `IsServerSide`, `SpellName`)
@@ -26,7 +30,6 @@ VALUES
 -- class 0 = Consumable, subclass 3 = Other
 -- Quality 2 = Uncommon (green)
 -- stackable 5, spellcharges_1 -1 = consumed on use
--- displayid 2530 = generic scroll icon
 -- ============================================================
 DELETE FROM `item_template` WHERE `entry` IN (90003, 90004, 90005);
 INSERT INTO `item_template`

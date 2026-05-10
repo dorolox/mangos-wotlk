@@ -26117,12 +26117,13 @@ void Player::UpgradeBotGear()
 {
     if (!GetPlayerbotAI())
         return;
-    // First pass: equip epics wherever the cache has them for this class/spec/level.
-    // Second pass: fill any slot that got nothing in the first pass with blue.
-    // incremental=true in both passes means existing epics are never downgraded to blue.
-    PlayerbotFactory epicFactory(this, GetLevel(), ITEM_QUALITY_EPIC);
-    epicFactory.UpgradeGear(false);
+    // Ascending quality passes: each pass only upgrades slots where a strictly better
+    // item exists (incremental=true), so gear never downgrades between passes.
+    PlayerbotFactory uncommonFactory(this, GetLevel(), ITEM_QUALITY_UNCOMMON);
+    uncommonFactory.UpgradeGear(false);
     PlayerbotFactory rareFactory(this, GetLevel(), ITEM_QUALITY_RARE);
     rareFactory.UpgradeGear(false);
+    PlayerbotFactory epicFactory(this, GetLevel(), ITEM_QUALITY_EPIC);
+    epicFactory.UpgradeGear(false);
 }
 #endif

@@ -2567,6 +2567,8 @@ class Player : public Unit
         PlayerbotMgr* GetPlayerbotMgr() { return m_playerbotMgr.get(); }
         void SetBotDeathTimer() { m_deathTimer = 0; }
         bool isRealPlayer() { return m_session && (m_session->GetRemoteAddress() != "disconnected/bot"); }
+        void InitBotToLevel(uint32 level);
+        void UpgradeBotGear();
 #endif
         // function used for raise ally spell
         bool IsGhouled() const { return m_isGhouled; }

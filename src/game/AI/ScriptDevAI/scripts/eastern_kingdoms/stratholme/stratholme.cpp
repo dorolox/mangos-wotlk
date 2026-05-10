@@ -33,6 +33,7 @@ instance_stratholme::instance_stratholme(Map* map) : ScriptedInstance(map),
                                                      m_blackGuardsTimer(0),
                                                      m_auriusSummonTimer(0),
                                                      m_isSlaughterDoorOpen(false),
+                                                     m_slaughterSquareStarted(false),
                                                      m_yellCounter(0),
                                                      m_mindlessCount(0),
                                                      m_postboxesUsed(0),
@@ -83,13 +84,21 @@ void instance_stratholme::DoOpenSlaughterhouseDoor(bool open)
 
 bool instance_stratholme::StartSlaughterSquare()
 {
-    if (m_auiEncounter[TYPE_BARONESS] == SPECIAL && m_auiEncounter[TYPE_NERUB] == SPECIAL && m_auiEncounter[TYPE_PALLID] == SPECIAL)
+    if (m_slaughterSquareStarted)
+        return true;
+
+    // Accept DONE in addition to SPECIAL: a boss being killed transitions SPECIAL -> DONE,
+    // so by the time the third ziggurat is cleared all three may be in different states.
+    if ((m_auiEncounter[TYPE_BARONESS] == SPECIAL || m_auiEncounter[TYPE_BARONESS] == DONE) &&
+        (m_auiEncounter[TYPE_NERUB]    == SPECIAL || m_auiEncounter[TYPE_NERUB]    == DONE) &&
+        (m_auiEncounter[TYPE_PALLID]   == SPECIAL || m_auiEncounter[TYPE_PALLID]   == DONE))
     {
         DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RIVENDARE, NPC_BARON);
 
         DoUseDoorOrButton(GO_PORT_GAUNTLET);
         DoUseDoorOrButton(GO_PORT_SLAUGHTER);
 
+        m_slaughterSquareStarted = true;
         debug_log("SD2: Instance Stratholme: Open Slaughter square.");
         return true;
     }
@@ -249,6 +258,7 @@ void instance_stratholme::SetData(uint32 type, uint32 data)
             {
                 DoSortZiggurats();
                 DoUseDoorOrButton(m_zigguratStorage[type - TYPE_BARONESS].m_doorGuid);
+                StartSlaughterSquare();
             }
             if (data == SPECIAL)
                 StartSlaughterSquare();

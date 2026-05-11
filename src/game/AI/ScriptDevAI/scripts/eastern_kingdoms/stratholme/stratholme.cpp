@@ -95,8 +95,8 @@ bool instance_stratholme::StartSlaughterSquare()
     {
         DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RIVENDARE, NPC_BARON);
 
-        DoUseDoorOrButton(GO_PORT_GAUNTLET);
-        DoUseDoorOrButton(GO_PORT_SLAUGHTER);
+        DoUseOpenableObject(GO_PORT_GAUNTLET, true);
+        DoUseOpenableObject(GO_PORT_SLAUGHTER, true);
 
         m_slaughterSquareStarted = true;
         debug_log("SD2: Instance Stratholme: Open Slaughter square.");
@@ -195,7 +195,9 @@ void instance_stratholme::OnObjectCreate(GameObject* go)
             break;
         case GO_PORT_GAUNTLET:
         case GO_PORT_SLAUGHTER:
-            if (m_auiEncounter[TYPE_BARONESS] == SPECIAL && m_auiEncounter[TYPE_NERUB] == SPECIAL && m_auiEncounter[TYPE_PALLID] == SPECIAL)
+            if ((m_auiEncounter[TYPE_BARONESS] == SPECIAL || m_auiEncounter[TYPE_BARONESS] == DONE) &&
+                (m_auiEncounter[TYPE_NERUB]    == SPECIAL || m_auiEncounter[TYPE_NERUB]    == DONE) &&
+                (m_auiEncounter[TYPE_PALLID]   == SPECIAL || m_auiEncounter[TYPE_PALLID]   == DONE))
                 go->SetGoState(GO_STATE_ACTIVE);
             break;
         case GO_PORT_SLAUGHTER_GATE:
@@ -269,7 +271,7 @@ void instance_stratholme::SetData(uint32 type, uint32 data)
                 if (m_auiEncounter[type] != SPECIAL && m_auiEncounter[type] != DONE)
                 {
                     m_slaughterSquareTimer = 20 * IN_MILLISECONDS;       // TODO - unknown, also possible that this is not the very correct place..
-                    DoUseDoorOrButton(GO_PORT_GAUNTLET);
+                    DoUseOpenableObject(GO_PORT_GAUNTLET, false);
                 }
 
                 uint32 abomCount = m_abominationGUIDs.size();
@@ -311,7 +313,7 @@ void instance_stratholme::SetData(uint32 type, uint32 data)
             }
             // After fail aggroing Ramstein means wipe on Ramstein, so close door again
             if (data == IN_PROGRESS && m_auiEncounter[type] == FAIL)
-                DoUseDoorOrButton(GO_PORT_GAUNTLET);
+                DoUseOpenableObject(GO_PORT_GAUNTLET, false);
             if (data == DONE)
             {
                 // Open side gate and start summoning skeletons
@@ -340,7 +342,7 @@ void instance_stratholme::SetData(uint32 type, uint32 data)
             // Open Door again and stop Abomination
             if (data == FAIL && m_auiEncounter[type] != FAIL)
             {
-                DoUseDoorOrButton(GO_PORT_GAUNTLET);
+                DoUseOpenableObject(GO_PORT_GAUNTLET, true);
                 m_slaughterSquareTimer = 0;
 
                 // Let already moving Abominations stop
@@ -456,15 +458,15 @@ void instance_stratholme::SetData(uint32 type, uint32 data)
 
             // Restart after failure, close Gauntlet
             if (data == IN_PROGRESS && m_auiEncounter[type] == FAIL)
-                DoUseDoorOrButton(GO_PORT_GAUNTLET);
+                DoUseOpenableObject(GO_PORT_GAUNTLET, false);
             // Wipe case - open gauntlet
             if (data == FAIL)
-                DoUseDoorOrButton(GO_PORT_GAUNTLET);
+                DoUseOpenableObject(GO_PORT_GAUNTLET, true);
             if (data == DONE)
             {
                 if (Creature* baron = GetSingleCreatureFromStorage(NPC_BARON))
                     DoScriptText(SAY_UNDEAD_DEFEAT, baron);
-                DoUseDoorOrButton(GO_ZIGGURAT_DOOR_5);
+                DoUseOpenableObject(GO_ZIGGURAT_DOOR_5, true);
             }
             m_auiEncounter[type] = data;
 

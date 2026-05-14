@@ -563,9 +563,44 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sPowerDisplayStore,        dbcPath, "PowerDisplay.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sPvPDifficultyStore,       dbcPath, "PvpDifficulty.dbc");
     for (uint32 i = 0; i < sPvPDifficultyStore.GetNumRows(); ++i)
+    {
         if (PvPDifficultyEntry const* entry = sPvPDifficultyStore.LookupEntry(i))
+        {
             if (entry->bracketId > MAX_BATTLEGROUND_BRACKETS)
                 MANGOS_ASSERT(false && "Need update MAX_BATTLEGROUND_BRACKETS by DBC data");
+
+            // Shift expansion-cap brackets so level 60 falls in bracket 4 and level 70 in bracket 5:
+            //   bracket 4: 50-59 -> 50-60
+            //   bracket 5: 60-69 -> 61-70
+            //   bracket 6: 70-79 -> 71-79  (avoid overlap with the new bracket 5 at level 70)
+            bool needFix = false;
+            auto fixedEntry = new PvPDifficultyEntry(*entry);
+            if (entry->bracketId == 4 && entry->maxLevel == 59)
+            {
+                fixedEntry->maxLevel = 60;
+                needFix = true;
+            }
+            else if (entry->bracketId == 5 && entry->minLevel == 60)
+            {
+                fixedEntry->minLevel = 61;
+                fixedEntry->maxLevel = 70;
+                needFix = true;
+            }
+            else if (entry->bracketId == 6 && entry->minLevel == 70)
+            {
+                fixedEntry->minLevel = 71;
+                needFix = true;
+            }
+
+            if (needFix)
+            {
+                sPvPDifficultyStore.EraseEntry(i);
+                sPvPDifficultyStore.InsertEntry(fixedEntry, i);
+            }
+            else
+                delete fixedEntry;
+        }
+    }
 
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sRandomPropertiesPointsStore, dbcPath, "RandPropPoints.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sScalingStatDistributionStore, dbcPath, "ScalingStatDistribution.dbc");

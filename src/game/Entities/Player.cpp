@@ -3003,7 +3003,7 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
         xp = uint32(xp * sWorld.getConfig(CONFIG_FLOAT_RATE_XP_UNTIL_LEVEL_80));
 
     // XP to money conversion processed in Player::RewardQuest
-    if (level >= GetMaxAttainableLevel())
+    if (GetLevel() >= GetMaxAttainableLevel())
         return;
 
     // Synced players earn proportionally more XP than a genuine low-level would,
@@ -3042,6 +3042,8 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
     uint32 nextLvlXP = GetUInt32Value(PLAYER_NEXT_LEVEL_XP);
     uint32 newXP = curXP + xp + bonus_xp;
 
+    // Use real level (not effective/synced level) for level-up processing
+    level = GetLevel();
     while (newXP >= nextLvlXP && level < GetMaxAttainableLevel())
     {
         newXP -= nextLvlXP;

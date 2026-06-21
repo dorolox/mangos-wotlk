@@ -1502,6 +1502,8 @@ bool GameObject::CanUseNow(Player const* player) const
                 return false;
 
             WorldObject const* owner = GetOwner();
+            if (!owner)
+                return false;
             if (owner->IsPlayer())
             {
                 Player const* ownerPlayer = static_cast<Player const*>(owner);

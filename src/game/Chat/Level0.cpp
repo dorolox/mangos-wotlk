@@ -29,6 +29,9 @@
 #include "SystemConfig.h"
 #include "revision.h"
 #include "Util/Util.h"
+#ifdef ENABLE_PLAYERBOTS
+#include "playerbot/playerbot.h"
+#endif
 
 bool ChatHandler::HandleHelpCommand(char* args)
 {
@@ -106,6 +109,26 @@ bool ChatHandler::HandleServerInfoCommand(char* /*args*/)
     PSendSysMessage(LANG_CONNECTED_USERS, activeClientsNum, maxActiveClientsNum, queuedClientsNum, maxQueuedClientsNum);
     PSendSysMessage(LANG_UPTIME, str.c_str());
 
+    return true;
+}
+
+bool ChatHandler::HandleServerOnlineCommand(char* /*args*/)
+{
+    uint32 count = 0;
+    HashMapHolder<Player>::MapType& players = sObjectAccessor.GetPlayers();
+    for (auto& itr : players)
+    {
+        Player* pl = itr.second;
+        if (!pl || !pl->IsInWorld())
+            continue;
+#ifdef ENABLE_PLAYERBOTS
+        if (pl->GetPlayerbotAI() && !pl->GetPlayerbotAI()->IsRealPlayer())
+            continue;
+#endif
+        ++count;
+        PSendSysMessage("%s (Level %u)", pl->GetName(), pl->GetLevel());
+    }
+    PSendSysMessage("Real players online: %u", count);
     return true;
 }
 

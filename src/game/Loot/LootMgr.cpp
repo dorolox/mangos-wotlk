@@ -2463,6 +2463,8 @@ void Loot::ApplyItemCountMultiplier(uint32 maxMultiplier)
             continue;
         if (lootItem->lootItemType == LOOTITEM_TYPE_QUEST || lootItem->itemProto->Class == ITEM_CLASS_QUEST)
             continue;
+        if (lootItem->itemProto->MaxCount == 1)
+            continue;
         lootItem->count *= urand(1, maxMultiplier);
     }
 }

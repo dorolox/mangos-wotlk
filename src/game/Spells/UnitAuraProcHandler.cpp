@@ -4238,6 +4238,9 @@ SpellAuraProcResult Unit::HandleModDamagePercentDoneAuraProc(ProcExecutionData& 
     else if (spellProto->Id == 36032 && spellProto->SpellFamilyName == SPELLFAMILY_MAGE && spellProto->SpellIconID == 2294)
         // prevent proc from self(spell that triggered this aura)
         return SPELL_AURA_PROC_FAILED;
+    // Clearcasting (Shaman) - charges are managed by the SpellModifier system; this effect must not consume them via proc
+    else if (spellProto->Id == 16246)
+        return SPELL_AURA_PROC_CANT_TRIGGER;
 
     if (triggeredSpellId)
         TriggerProccedSpell(nullptr, basepoints, triggeredSpellId, castItem, triggeredByAura, data.cooldown, ObjectGuid());

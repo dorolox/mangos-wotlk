@@ -979,7 +979,7 @@ void BattleGround::EndBattleGround(Team winner)
             RewardMark(plr, ITEM_WINNER_COUNT);
             RewardQuestComplete(plr);
 
-            if (IsRandom())
+            if (isCallToArms)
             {
                 UpdatePlayerScore(plr, SCORE_BONUS_HONOR, GetBonusHonorFromKill(winKills * 4));
                 plr->ModifyArenaPoints(winArena);
@@ -995,7 +995,7 @@ void BattleGround::EndBattleGround(Team winner)
         {
             RewardMark(plr, ITEM_LOSER_COUNT);
 
-            if (IsRandom())
+            if (isCallToArms)
                 UpdatePlayerScore(plr, SCORE_BONUS_HONOR, GetBonusHonorFromKill(loseKills * 4));
         }
 

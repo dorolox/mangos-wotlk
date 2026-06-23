@@ -874,6 +874,8 @@ void BattleGround::EndBattleGround(Team winner)
         creature->SetStunned(true);
     }
 
+    bool isCallToArms = IsRandom() || BattleGroundMgr::IsBgWeekend(GetTypeId());
+
     for (auto& m_Player : m_players)
     {
         Team team = m_Player.second.playerTeam;

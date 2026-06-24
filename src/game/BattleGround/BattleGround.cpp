@@ -976,10 +976,19 @@ void BattleGround::EndBattleGround(Team winner)
         uint32 loseKills = plr->HasWonRandomBattleground() ? BG_REWARD_LOOSER_HONOR_LAST : BG_REWARD_LOOSER_HONOR_FIRST;
         uint32 winArena  = plr->HasWonRandomBattleground() ? BG_REWARD_WINNER_ARENA_LAST : BG_REWARD_WINNER_ARENA_FIRST;
 
+        // Base honor reward for all BGs: linear ramp giving 500/1000/1500 at level 60/70/80
+        // Multiplied by the server honor rate (Config: Rate.Honor) since RewardHonor bypasses it when uVictim is null
+        uint32 bgMaxLevel = GetMaxLevel();
+        float honorRate = sWorld.getConfig(CONFIG_FLOAT_RATE_HONOR);
+        uint32 baseWinHonor = uint32((bgMaxLevel >= 60 ? 500 + (bgMaxLevel - 60) * 50 : bgMaxLevel * 500 / 60) * honorRate);
+        uint32 baseLoseHonor = baseWinHonor / 2;
+
         if (team == winner)
         {
             RewardMark(plr, ITEM_WINNER_COUNT);
             RewardQuestComplete(plr);
+
+            UpdatePlayerScore(plr, SCORE_BONUS_HONOR, baseWinHonor);
 
             if (isCallToArms)
             {
@@ -996,6 +1005,8 @@ void BattleGround::EndBattleGround(Team winner)
         else
         {
             RewardMark(plr, ITEM_LOSER_COUNT);
+
+            UpdatePlayerScore(plr, SCORE_BONUS_HONOR, baseLoseHonor);
 
             if (isCallToArms)
                 UpdatePlayerScore(plr, SCORE_BONUS_HONOR, GetBonusHonorFromKill(loseKills * 4));

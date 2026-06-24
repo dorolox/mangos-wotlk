@@ -569,24 +569,26 @@ void LoadDBCStores(const std::string& dataPath)
             if (entry->bracketId > MAX_BATTLEGROUND_BRACKETS)
                 MANGOS_ASSERT(false && "Need update MAX_BATTLEGROUND_BRACKETS by DBC data");
 
-            // Shift expansion-cap brackets so level 60 falls in bracket 4 and level 70 in bracket 5:
-            //   bracket 4: 50-59 -> 50-60
-            //   bracket 5: 60-69 -> 61-70
-            //   bracket 6: 70-79 -> 71-79  (avoid overlap with the new bracket 5 at level 70)
+            sLog.outString("PvPDifficulty: mapId=%u bracketId=%u minLevel=%u maxLevel=%u", entry->mapId, entry->bracketId, entry->minLevel, entry->maxLevel);
+
+            // Shift expansion-cap brackets so level 60 falls in the 50-59 bracket and level 70 in the 60-69 bracket:
+            //   50-59 -> 50-60
+            //   60-69 -> 61-70
+            //   70-79 -> 71-79  (avoid overlap with the new 61-70 bracket)
             bool needFix = false;
             auto fixedEntry = new PvPDifficultyEntry(*entry);
-            if (entry->bracketId == 4 && entry->maxLevel == 59)
+            if (entry->minLevel == 50 && entry->maxLevel == 59)
             {
                 fixedEntry->maxLevel = 60;
                 needFix = true;
             }
-            else if (entry->bracketId == 5 && entry->minLevel == 60)
+            else if (entry->minLevel == 60 && entry->maxLevel == 69)
             {
                 fixedEntry->minLevel = 61;
                 fixedEntry->maxLevel = 70;
                 needFix = true;
             }
-            else if (entry->bracketId == 6 && entry->minLevel == 70)
+            else if (entry->minLevel == 70 && entry->maxLevel == 79)
             {
                 fixedEntry->minLevel = 71;
                 needFix = true;

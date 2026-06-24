@@ -518,6 +518,26 @@ void LfgProposal::AcceptProposal(LFGQueue& queue)
     sWorld.GetMessager().AddMessage([allPlayers, group = group, dungeon, playersToTeleport, randomDungeonPerPlayer, partyCountPerPlayer](World* world)
     {
         Group* grp = group ? sObjectMgr.GetGroupById(group.GetCounter()) : nullptr;
+
+        // Capture loot settings from the leader's existing group before it gets dissolved
+        bool hasSavedLootSettings = false;
+        LootMethod savedLootMethod = GROUP_LOOT;
+        ObjectGuid savedMasterLooterGuid;
+        ItemQualities savedLootThreshold = ITEM_QUALITY_UNCOMMON;
+        if (!grp && !allPlayers.empty())
+        {
+            if (Player* leader = ObjectAccessor::FindPlayer(allPlayers.front()))
+            {
+                if (Group* existingGroup = leader->GetGroup())
+                {
+                    savedLootMethod = existingGroup->GetLootMethod();
+                    savedMasterLooterGuid = existingGroup->GetMasterLooterGuid();
+                    savedLootThreshold = existingGroup->GetLootThreshold();
+                    hasSavedLootSettings = true;
+                }
+            }
+        }
+
         for (GuidList::const_iterator it = allPlayers.begin(); it != allPlayers.end(); ++it)
         {
             ObjectGuid pguid = (*it);
@@ -551,6 +571,12 @@ void LfgProposal::AcceptProposal(LFGQueue& queue)
             {
                 grp = new Group();
                 grp->Create(player->GetObjectGuid(), player->GetName());
+                if (hasSavedLootSettings)
+                {
+                    grp->SetLootMethod(savedLootMethod);
+                    grp->SetMasterLooterGuid(savedMasterLooterGuid);
+                    grp->SetLootThreshold(savedLootThreshold);
+                }
                 grp->ConvertToLFG();
                 sObjectMgr.AddGroup(grp);
             }

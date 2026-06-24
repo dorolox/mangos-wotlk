@@ -569,8 +569,6 @@ void LoadDBCStores(const std::string& dataPath)
             if (entry->bracketId > MAX_BATTLEGROUND_BRACKETS)
                 MANGOS_ASSERT(false && "Need update MAX_BATTLEGROUND_BRACKETS by DBC data");
 
-            sLog.outString("PvPDifficulty: mapId=%u bracketId=%u minLevel=%u maxLevel=%u", entry->mapId, entry->bracketId, entry->minLevel, entry->maxLevel);
-
             // Shift expansion-cap brackets so level 60 falls in the 50-59 bracket and level 70 in the 60-69 bracket:
             //   50-59 -> 50-60
             //   60-69 -> 61-70

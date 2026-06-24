@@ -1501,10 +1501,10 @@ bool GameObject::CanUseNow(Player const* player) const
             if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_NOT_IN_COMBAT_ONLY_PEACEFUL) && player->IsInCombat())
                 return false;
 
+            // World-spawned ritual GOs (e.g. Blackrock Altar) have no owner and are freely usable.
+            // For player-summoned ritual GOs (e.g. summoning stones), enforce group membership.
             WorldObject const* owner = GetOwner();
-            if (!owner)
-                return false;
-            if (owner->IsPlayer())
+            if (owner && owner->IsPlayer())
             {
                 Player const* ownerPlayer = static_cast<Player const*>(owner);
                 if (!player->IsInGroup(ownerPlayer, false))

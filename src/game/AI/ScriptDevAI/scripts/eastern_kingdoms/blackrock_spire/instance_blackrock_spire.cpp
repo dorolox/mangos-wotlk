@@ -479,8 +479,12 @@ void instance_blackrock_spire::OnCreatureDespawn(Creature* pCreature)
 
 void instance_blackrock_spire::DoProcessEmberseerEvent()
 {
+    sLog.outString("[Emberseer] DoProcessEmberseerEvent: TYPE_EMBERSEER=%u incarceratorCount=%zu", GetData(TYPE_EMBERSEER), m_lIncarceratorGUIDList.size());
     if (GetData(TYPE_EMBERSEER) == DONE || GetData(TYPE_EMBERSEER) == IN_PROGRESS)
+    {
+        sLog.outString("[Emberseer] Early return: TYPE_EMBERSEER is DONE or IN_PROGRESS (%u)", GetData(TYPE_EMBERSEER));
         return;
+    }
 
     if (m_lIncarceratorGUIDList.empty())
     {
@@ -493,7 +497,10 @@ void instance_blackrock_spire::DoProcessEmberseerEvent()
     {
         // If already casting, return
         if (pEmberseer->HasAura(SPELL_EMBERSEER_GROWING))
+        {
+            sLog.outString("[Emberseer] Early return: Emberseer already has GROWING aura");
             return;
+        }
 
         DoScriptText(EMOTE_BEGIN, pEmberseer);
         pEmberseer->CastSpell(pEmberseer, SPELL_EMBERSEER_GROWING, TRIGGERED_OLD_TRIGGERED);
@@ -809,6 +816,7 @@ bool AreaTrigger_at_blackrock_spire(Player* pPlayer, AreaTriggerEntry const* pAt
 
 bool ProcessEventId_event_spell_altar_emberseer(uint32 /*uiEventId*/, Object* pSource, Object* /*pTarget*/, bool bIsStart)
 {
+    sLog.outString("[Emberseer] ProcessEventId called: bIsStart=%d sourceType=%u", bIsStart ? 1 : 0, pSource->GetTypeId());
     if (bIsStart && pSource->GetTypeId() == TYPEID_PLAYER)
     {
         if (instance_blackrock_spire* pInstance = (instance_blackrock_spire*)((Player*)pSource)->GetInstanceData())
@@ -816,6 +824,7 @@ bool ProcessEventId_event_spell_altar_emberseer(uint32 /*uiEventId*/, Object* pS
             pInstance->DoProcessEmberseerEvent();
             return true;
         }
+        sLog.outString("[Emberseer] No instance data found for player");
     }
     return false;
 }

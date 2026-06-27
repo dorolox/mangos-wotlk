@@ -39,6 +39,9 @@
 #include "Anticheat/Anticheat.hpp"
 #include "Spells/SpellMgr.h"
 #include "Entities/Transports.h"
+#include "Guilds/Guild.h"
+#include "Guilds/GuildMgr.h"
+#include "Config/Config.h"
 #ifdef _DEBUG_VMAPS
 #include "Vmap/VMapFactory.h"
 #endif
@@ -2468,5 +2471,42 @@ bool ChatHandler::HandleReloadAnticheatCommand(char*)
 {
     sAnticheatLib->Reload();
     SendSysMessage(">> Anticheat data reloaded");
+    return true;
+}
+
+bool ChatHandler::HandleGuildAutoJoinCommand(char* /*args*/)
+{
+    Player* player = m_session->GetPlayer();
+
+    if (player->GetGuildId())
+    {
+        SendSysMessage("You are already in a guild.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    std::string guildName = sConfig.GetStringDefault("Guild.AutoJoin.Name", "");
+    if (guildName.empty())
+    {
+        SendSysMessage("No default guild is configured on this server.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    Guild* guild = sGuildMgr.GetGuildByName(guildName);
+    if (!guild)
+    {
+        SendSysMessage("The configured default guild does not exist.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if (!guild->AddMember(player->GetObjectGuid(), guild->GetLowestRank()))
+    {
+        SendSysMessage("Failed to join the guild.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
     return true;
 }

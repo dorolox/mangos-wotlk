@@ -393,6 +393,8 @@ class ChatHandler
         bool HandleHonorAddKillCommand(char* args);
         bool HandleHonorUpdateCommand(char* args);
 
+        bool HandleGuildAutoJoinCommand(char* args);
+
         bool HandleInstanceListBindsCommand(char* args);
         bool HandleInstanceUnbindCommand(char* args);
         bool HandleInstanceStatsCommand(char* args);

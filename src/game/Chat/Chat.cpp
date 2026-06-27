@@ -1106,6 +1106,7 @@ ChatCommand* ChatHandler::getCommandTable()
 #endif
         { "sync",           SEC_PLAYER,         false, &ChatHandler::HandleSyncCommand,                "", nullptr },
         { "pet",            SEC_PLAYER,         false, &ChatHandler::HandlePetResetCommand,            "", nullptr },
+        { "guildjoin",      SEC_PLAYER,         false, &ChatHandler::HandleGuildAutoJoinCommand,        "", nullptr },
 
         { nullptr,             0,                  false, nullptr,                                           "", nullptr }
     };

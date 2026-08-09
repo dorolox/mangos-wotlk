@@ -389,8 +389,22 @@ bool SpellModifier::isAffectedOnSpell(SpellEntry const* spell) const
     SpellEntry const* affect_spell = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     // False if affect_spell == nullptr or spellFamily not equal
     if (!affect_spell || affect_spell->SpellFamilyName != spell->SpellFamilyName)
+    {
+        if (spellId == 51124)
+            sLog.outString("[KM DEBUG] isAffectedOnSpell(51124): FAIL family check - affect_spell=%s familyName=%u vs spell(%u) familyName=%u",
+                affect_spell ? "found" : "null",
+                affect_spell ? affect_spell->SpellFamilyName : 0,
+                spell->Id, spell->SpellFamilyName);
         return false;
-    return spell->IsFitToFamilyMask(mask);
+    }
+    bool result = spell->IsFitToFamilyMask(mask);
+    if (spellId == 51124)
+        sLog.outString("[KM DEBUG] isAffectedOnSpell(51124): spell=%u familyName=%u maskFlags=0x%llX maskFlags2=0x%X spellFlags=0x%llX spellFlags2=0x%X result=%s",
+            spell->Id, spell->SpellFamilyName,
+            mask.Flags, mask.Flags2,
+            spell->SpellFamilyFlags.Flags, spell->SpellFamilyFlags.Flags2,
+            result ? "TRUE" : "FALSE");
+    return result;
 }
 
 //== TradeData =================================================

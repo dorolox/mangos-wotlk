@@ -397,7 +397,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "unbind",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleInstanceUnbindCommand,      "", nullptr },
         { "stats",          SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleInstanceStatsCommand,       "", nullptr },
         { "savedata",       SEC_ADMINISTRATOR,  false, &ChatHandler::HandleInstanceSaveDataCommand,    "", nullptr },
-        { "lfg",            SEC_GAMEMASTER,     false, &ChatHandler::HandleInstanceLfgCommand,         "", nullptr },
+        { "lfg",            SEC_PLAYER,         false, &ChatHandler::HandleInstanceLfgCommand,         "", nullptr },
         { nullptr,             0,                  false, nullptr,                                           "", nullptr }
     };
 

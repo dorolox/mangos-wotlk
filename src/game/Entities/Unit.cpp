@@ -3929,7 +3929,20 @@ bool Unit::CanCrit(const SpellEntry* entry, SpellSchoolMask schoolMask, WeaponAt
         case SPELL_DAMAGE_CLASS_MELEE:
         case SPELL_DAMAGE_CLASS_RANGED: return CanCrit(attType);
         case SPELL_DAMAGE_CLASS_NONE:
-        case SPELL_DAMAGE_CLASS_MAGIC:  return CanCrit(schoolMask);
+        case SPELL_DAMAGE_CLASS_MAGIC:
+        {
+            if (CanCrit(schoolMask))
+                return true;
+            // A flat spell mod (e.g. Killing Machine) may grant enough crit to make this spell crittable
+            // even when the caster's base spell crit is zero. Check without consuming charges (finalUse=false).
+            if (Player* modOwner = GetSpellModOwner())
+            {
+                float modValue = 0.0f;
+                modOwner->ApplySpellMod(entry->Id, SPELLMOD_CRITICAL_CHANCE, modValue, false);
+                return modValue > 0.0f;
+            }
+            return false;
+        }
     }
     return false;
 }

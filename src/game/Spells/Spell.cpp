@@ -3858,7 +3858,14 @@ void Spell::handle_immediate()
     _handle_finish_phase();
 
     if (m_spellState != SPELL_STATE_CHANNELING)
+    {
+        // For instant spells, cast() RAII uses success=false (it can't know the outcome upfront).
+        // Consume any finite spell mod charges used during hit processing here, before cast() RAII resets them.
+        if (Player* modOwner = m_trueCaster->GetSpellModOwner())
+            if (modOwner->GetSpellModSpell() == this)
+                modOwner->RemoveSpellMods(m_usedAuraCharges);
         finish();                                       // successfully finish spell cast (not last in case autorepeat or channel spell)
+    }
 }
 
 uint64 Spell::handle_delayed(uint64 t_offset)

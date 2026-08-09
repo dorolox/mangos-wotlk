@@ -3049,12 +3049,6 @@ void RemoveItemsSetItem(Player* player, ItemPrototype const* proto);
 template <class T> void Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, bool finalUse)
 {
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
-    if (spellId == 45477 && op == SPELLMOD_CRITICAL_CHANCE)
-        sLog.outString("[KM DEBUG] ApplySpellMod: spellId=45477 op=CRIT_CHANCE spellInfo=%s familyName=%u spellClass=%u hasIgnoreAttr=%u",
-            spellInfo ? "found" : "null",
-            spellInfo ? spellInfo->SpellFamilyName : 0,
-            uint32(GetSpellClass()),
-            spellInfo ? uint32(spellInfo->HasAttribute(SPELL_ATTR_EX3_IGNORE_CASTER_MODIFIERS)) : 0);
     if (!spellInfo || spellInfo->SpellFamilyName != GetSpellClass() || spellInfo->HasAttribute(SPELL_ATTR_EX3_IGNORE_CASTER_MODIFIERS)) return; // client condition
     int32 totalpct = 100;
     int32 totalflat = 0;

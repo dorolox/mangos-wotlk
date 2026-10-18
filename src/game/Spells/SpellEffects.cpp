@@ -728,7 +728,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
         }
 
         // KST scaling damage for DK spells for lvl under 55
-        if (m_caster->IsPlayer() && m_caster->getClass() == CLASS_DEATH_KNIGHT && m_caster->GetLevel() < 55)
+        if (m_caster && m_caster->IsPlayer() && m_caster->getClass() == CLASS_DEATH_KNIGHT && m_caster->GetLevel() < 55)
         {
             // Check that the spell belongs to the Death Knight class
             if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
@@ -7572,7 +7572,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
     }
 
 	// KST scaling damage for DK spells for lvl under 55 (Fixed damage part only)
-    if (m_caster->IsPlayer() && m_caster->getClass() == CLASS_DEATH_KNIGHT && m_caster->GetLevel() < 55)
+    if (m_caster && m_caster->IsPlayer() && m_caster->getClass() == CLASS_DEATH_KNIGHT && m_caster->GetLevel() < 55)
     {
         if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
         {

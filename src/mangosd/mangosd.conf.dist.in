@@ -1501,6 +1501,12 @@ Visibility.AIRelocationNotifyDelay = 1000
 #        XP rates for map areas belonging to each expansion (cumulative with generic XP modifiers)
 #        Default: 1
 #
+#    Rate.XP.Level.60
+#    Rate.XP.Level.70
+#    Rate.XP.Level.80
+#        XP rates for each level range until 60, 70 and 80 (cumulative with generic XP modifiers)
+#        Default:
+#
 #    Rate.Rest.InGame
 #    Rate.Rest.Offline.InTavernOrCity
 #    Rate.Rest.Offline.InWilderness
@@ -1657,6 +1663,9 @@ Rate.XP.Quest.Wrath   = 1
 Rate.XP.Explore.Vanilla = 1
 Rate.XP.Explore.BC      = 1
 Rate.XP.Explore.Wrath   = 1
+Rate.XP.Level.60 = 1.0
+Rate.XP.Level.70 = 1.0
+Rate.XP.Level.80 = 1.0
 Rate.Rest.InGame = 1
 Rate.Rest.Offline.InTavernOrCity = 1
 Rate.Rest.Offline.InWilderness = 1

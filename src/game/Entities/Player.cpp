@@ -2969,6 +2969,14 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
 
     uint32 level = GetLevel();
 
+    // KST add multiplicator per levels
+    if (level < 60)
+        xp = uint32(xp * sWorld.getConfig(CONFIG_FLOAT_RATE_XP_UNTIL_LEVEL_60));
+    else if (level < 70)
+        xp = uint32(xp * sWorld.getConfig(CONFIG_FLOAT_RATE_XP_UNTIL_LEVEL_70));
+    else if (level < 80)
+        xp = uint32(xp * sWorld.getConfig(CONFIG_FLOAT_RATE_XP_UNTIL_LEVEL_80));
+
     // XP to money conversion processed in Player::RewardQuest
     if (level >= GetMaxAttainableLevel())
         return;

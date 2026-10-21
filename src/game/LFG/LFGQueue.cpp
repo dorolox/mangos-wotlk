@@ -420,7 +420,7 @@ void LfgProposal::AcceptProposal(LFGQueue& queue)
     {
         ObjectGuid pguid = itr->first;
         ObjectGuid gguid = itr->second.group;
-        uint32 randomDungeonId = itr->second.group;
+        uint32 randomDungeonId = itr->second.randomDungeonId;
         int32 waitTime = -1;
 
         std::vector<WorldPacket>& packets = personalizedPackets[pguid];
@@ -518,6 +518,26 @@ void LfgProposal::AcceptProposal(LFGQueue& queue)
     sWorld.GetMessager().AddMessage([allPlayers, group = group, dungeon, playersToTeleport, randomDungeonPerPlayer, partyCountPerPlayer](World* world)
     {
         Group* grp = group ? sObjectMgr.GetGroupById(group.GetCounter()) : nullptr;
+
+        // Capture loot settings from the leader's existing group before it gets dissolved
+        bool hasSavedLootSettings = false;
+        LootMethod savedLootMethod = GROUP_LOOT;
+        ObjectGuid savedMasterLooterGuid;
+        ItemQualities savedLootThreshold = ITEM_QUALITY_UNCOMMON;
+        if (!grp && !allPlayers.empty())
+        {
+            if (Player* leader = ObjectAccessor::FindPlayer(allPlayers.front()))
+            {
+                if (Group* existingGroup = leader->GetGroup())
+                {
+                    savedLootMethod = existingGroup->GetLootMethod();
+                    savedMasterLooterGuid = existingGroup->GetMasterLooterGuid();
+                    savedLootThreshold = existingGroup->GetLootThreshold();
+                    hasSavedLootSettings = true;
+                }
+            }
+        }
+
         for (GuidList::const_iterator it = allPlayers.begin(); it != allPlayers.end(); ++it)
         {
             ObjectGuid pguid = (*it);
@@ -525,21 +545,9 @@ void LfgProposal::AcceptProposal(LFGQueue& queue)
             if (!player)
                 continue;
 
-            Group* group = player->GetGroup();
-            if (group && group != grp)
-                group->RemoveMember(player->GetObjectGuid(), 0);
-
-            if (!grp)
-            {
-                grp = new Group();
-                grp->Create(player->GetObjectGuid(), player->GetName());
-                grp->ConvertToLFG();
-                ObjectGuid gguid = grp->GetObjectGuid();
-                sObjectMgr.AddGroup(grp);
-            }
-            else if (group != grp)
-                grp->AddMember(player->GetObjectGuid(), player->GetName());
-
+            // Set dungeon data before any AddMember/ConvertToLFG calls that trigger SendUpdate.
+            // SMSG_GROUP_LIST for an LFG group includes the player's dungeon ID; sending
+            // dungeon=0 at that point crashes the 3.3.5a client.
             player->GetLfgData().SetCountAtJoin(partyCountPerPlayer.find(pguid)->second);
             player->GetLfgData().SetDungeon(dungeon->id);
 
@@ -554,6 +562,26 @@ void LfgProposal::AcceptProposal(LFGQueue& queue)
                     player->GetLfgData().SetDungeon(randomDungeonId);
                 }
             }
+
+            Group* group = player->GetGroup();
+            if (group && group != grp)
+                group->RemoveMember(player->GetObjectGuid(), 0);
+
+            if (!grp)
+            {
+                grp = new Group();
+                grp->Create(player->GetObjectGuid(), player->GetName());
+                if (hasSavedLootSettings)
+                {
+                    grp->SetLootMethod(savedLootMethod);
+                    grp->SetMasterLooterGuid(savedMasterLooterGuid);
+                    grp->SetLootThreshold(savedLootThreshold);
+                }
+                grp->ConvertToLFG();
+                sObjectMgr.AddGroup(grp);
+            }
+            else if (group != grp)
+                grp->AddMember(player->GetObjectGuid(), player->GetName());
         }
 
         MANGOS_ASSERT(grp);

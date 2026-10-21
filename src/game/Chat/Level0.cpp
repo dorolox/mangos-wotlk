@@ -23,9 +23,11 @@
 #include "Server/Opcodes.h"
 #include "Chat/Chat.h"
 #include "Globals/ObjectAccessor.h"
+#include "Globals/ObjectMgr.h"
 #include "Tools/Language.h"
 #include "Accounts/AccountMgr.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "LFG/LFGMgr.h"
 #include "SystemConfig.h"
 #include "revision.h"
 #include "Util/Util.h"
@@ -458,5 +460,69 @@ bool ChatHandler::HandlePetResetCommand(char* args)
 
     Position pos = Pet::GetPetSpawnPosition(player);
     pet->NearTeleportTo(pos.x, pos.y, pos.z, player->GetOrientation());
+    return true;
+}
+
+bool ChatHandler::HandleInstanceLfgCommand(char* /*args*/)
+{
+    Player* player = m_session->GetPlayer();
+
+    Group* group = player->GetGroup();
+    if (!group || !group->IsLFGGroup())
+    {
+        SendSysMessage("Not in an LFG group.");
+        return true;
+    }
+
+    uint32 groupDungeonId = group->GetLfgData().GetDungeon();
+    uint32 playerDungeonId = player->GetLfgData().GetDungeon();
+
+    if (!groupDungeonId)
+    {
+        SendSysMessage("No active dungeon set on this LFG group.");
+        return true;
+    }
+
+    LFGDungeonData const* groupDungeon = sLFGMgr.GetLFGDungeon(groupDungeonId);
+    LFGDungeonData const* playerDungeon = playerDungeonId ? sLFGMgr.GetLFGDungeon(playerDungeonId) : nullptr;
+
+    PSendSysMessage("Group dungeon  : [%u] %s (map %u, diff %u)",
+        groupDungeonId,
+        groupDungeon ? groupDungeon->name.c_str() : "unknown",
+        groupDungeon ? uint32(groupDungeon->map) : 0u,
+        groupDungeon ? uint32(groupDungeon->difficulty) : 0u);
+
+    if (playerDungeonId && playerDungeonId != groupDungeonId)
+        PSendSysMessage("Player dungeon : [%u] %s%s",
+            playerDungeonId,
+            playerDungeon ? playerDungeon->name.c_str() : "unknown",
+            (playerDungeon && (playerDungeon->type == LFG_TYPE_RANDOM_DUNGEON || playerDungeon->seasonal)) ? " (random/seasonal)" : "");
+
+    // Find the encounter whose kill will trigger AwardLFGRewards for this group dungeon
+    uint32 mapId = groupDungeon ? uint32(groupDungeon->map) : player->GetMapId();
+    DungeonEncounterMapBounds bounds = sObjectMgr.GetDungeonEncounterBoundsByMap(mapId);
+
+    bool found = false;
+    for (auto itr = bounds.first; itr != bounds.second; ++itr)
+    {
+        DungeonEncounter const& enc = itr->second;
+        if (enc.lastEncounterDungeon != groupDungeonId)
+            continue;
+
+        const char* encName = enc.dbcEntry ? enc.dbcEntry->encounterName[GetSessionDbcLocale()] : "unknown";
+        const char* creditStr = (enc.creditType == ENCOUNTER_CREDIT_KILL_CREATURE) ? "kill creature"
+                              : (enc.creditType == ENCOUNTER_CREDIT_CAST_SPELL)    ? "cast spell"
+                                                                                   : "script";
+        PSendSysMessage("Expected encounter: [%u] %s | credit: %s %u",
+            enc.dbcEntry ? enc.dbcEntry->Id : 0u,
+            encName,
+            creditStr,
+            enc.creditEntry);
+        found = true;
+    }
+
+    if (!found)
+        PSendSysMessage("No encounter with lastEncounterDungeon=%u on map %u — reward trigger missing.", groupDungeonId, mapId);
+
     return true;
 }

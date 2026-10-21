@@ -276,6 +276,7 @@ class instance_stratholme : public ScriptedInstance
         uint32 m_blackGuardsTimer;
         uint32 m_auriusSummonTimer;
         bool m_isSlaughterDoorOpen;
+        bool m_slaughterSquareStarted;
 
         uint32 m_yellCounter;
         uint32 m_mindlessCount;

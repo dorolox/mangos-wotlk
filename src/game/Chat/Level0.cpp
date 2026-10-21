@@ -305,3 +305,35 @@ bool ChatHandler::HandleWhisperRestrictionCommand(char* args)
 
     return true;
 }
+
+bool ChatHandler::HandleXPCommand(char* args)
+{
+    Player* player = m_session->GetPlayer();
+    if (!player)
+        return false;
+
+    if (!*args)
+    {
+        PSendSysMessage("Usage : .xp enable ou .xp disable");
+        return true;
+    }
+
+    std::string argstr = (char*)args;
+
+    if (argstr == "disable" || argstr == "off")
+    {
+        player->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED);
+        PSendSysMessage("XP gain is disabled.");
+    }
+    else if (argstr == "enable" || argstr == "on")
+    {
+        player->RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED);
+        PSendSysMessage("XP gain is enabled.");
+    }
+    else
+    {
+        PSendSysMessage("Usage : .xp enable ou .xp disable");
+    }
+
+    return true;
+}

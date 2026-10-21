@@ -547,6 +547,9 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
 
     ClearResurrectRequestData();
 
+    m_syncLevel = 0;
+    m_syncRatio = 1.0f;
+
     memset(m_items, 0, sizeof(Item*)*PLAYER_SLOTS_COUNT);
 
     m_social = nullptr;
@@ -2957,6 +2960,26 @@ void Player::SendLogXPGain(uint32 GivenXP, Unit* victim, uint32 RestXP, bool rec
     GetSession()->SendPacket(data);
 }
 
+void Player::SetSync(uint32 level)
+{
+    m_syncLevel = level;
+    m_syncRatio = float(level) / float(GetLevel());
+    UpdateAllStats();
+    if (Pet* pet = GetPet())
+        pet->UpdateAllStats();
+}
+
+void Player::ClearSync()
+{
+    if (!IsSynced())
+        return;
+    m_syncLevel = 0;
+    m_syncRatio = 1.0f;
+    UpdateAllStats();
+    if (Pet* pet = GetPet())
+        pet->UpdateAllStats();
+}
+
 void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
 {
     if (xp < 1)
@@ -2968,7 +2991,7 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
     if (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED))
         return;
 
-    uint32 level = GetLevel();
+    uint32 level = GetEffectiveLevel();
 
     // KST add multiplicator per levels
     if (level < 60)
@@ -2979,8 +3002,14 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
         xp = uint32(xp * sWorld.getConfig(CONFIG_FLOAT_RATE_XP_UNTIL_LEVEL_80));
 
     // XP to money conversion processed in Player::RewardQuest
-    if (level >= GetMaxAttainableLevel())
+    if (GetLevel() >= GetMaxAttainableLevel())
         return;
+
+    // Synced players earn proportionally more XP than a genuine low-level would,
+    // compensating for the real level's higher XP requirements.
+    // Cube root keeps the boost moderate even at extreme level gaps (e.g. 80->1 gives ~4x not ~9x).
+    if (IsSynced() && victim)
+        xp = uint32(xp * std::pow(float(GetLevel()) / float(GetEffectiveLevel()), 1.0f / 3.0f));
 
     if (victim)
     {
@@ -3012,6 +3041,8 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
     uint32 nextLvlXP = GetUInt32Value(PLAYER_NEXT_LEVEL_XP);
     uint32 newXP = curXP + xp + bonus_xp;
 
+    // Use real level (not effective/synced level) for level-up processing
+    level = GetLevel();
     while (newXP >= nextLvlXP && level < GetMaxAttainableLevel())
     {
         newXP -= nextLvlXP;

@@ -563,9 +563,46 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sPowerDisplayStore,        dbcPath, "PowerDisplay.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sPvPDifficultyStore,       dbcPath, "PvpDifficulty.dbc");
     for (uint32 i = 0; i < sPvPDifficultyStore.GetNumRows(); ++i)
+    {
         if (PvPDifficultyEntry const* entry = sPvPDifficultyStore.LookupEntry(i))
+        {
             if (entry->bracketId > MAX_BATTLEGROUND_BRACKETS)
                 MANGOS_ASSERT(false && "Need update MAX_BATTLEGROUND_BRACKETS by DBC data");
+
+            sLog.outString("PvPDifficulty: mapId=%u bracketId=%u minLevel=%u maxLevel=%u", entry->mapId, entry->bracketId, entry->minLevel, entry->maxLevel);
+
+            // Shift expansion-cap brackets so level 60 falls in the 50-59 bracket and level 70 in the 60-69 bracket:
+            //   50-59 -> 50-60
+            //   60-69 -> 61-70
+            //   70-79 -> 71-79  (avoid overlap with the new 61-70 bracket)
+            bool needFix = false;
+            auto fixedEntry = new PvPDifficultyEntry(*entry);
+            if (entry->minLevel == 50 && entry->maxLevel == 59)
+            {
+                fixedEntry->maxLevel = 60;
+                needFix = true;
+            }
+            else if (entry->minLevel == 60 && entry->maxLevel == 69)
+            {
+                fixedEntry->minLevel = 61;
+                fixedEntry->maxLevel = 70;
+                needFix = true;
+            }
+            else if (entry->minLevel == 70 && entry->maxLevel == 79)
+            {
+                fixedEntry->minLevel = 71;
+                needFix = true;
+            }
+
+            if (needFix)
+            {
+                sPvPDifficultyStore.EraseEntry(i);
+                sPvPDifficultyStore.InsertEntry(fixedEntry, i);
+            }
+            else
+                delete fixedEntry;
+        }
+    }
 
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sRandomPropertiesPointsStore, dbcPath, "RandPropPoints.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sScalingStatDistributionStore, dbcPath, "ScalingStatDistribution.dbc");

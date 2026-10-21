@@ -1010,7 +1010,7 @@ void AuctionEntry::SaveToDB() const
 
 void AuctionEntry::AuctionBidWinning(Player* newbidder)
 {
-    moneyDeliveryTime = time(nullptr) + HOUR;
+    moneyDeliveryTime = time(nullptr) + 5 * MINUTE;
 
     CharacterDatabase.BeginTransaction();
     CharacterDatabase.PExecute("UPDATE auction SET itemguid = 0, moneyTime = '" UI64FMTD "', buyguid = '%u', lastbid = '%u' WHERE id = '%u'", (uint64)moneyDeliveryTime, bidder, bid, Id);

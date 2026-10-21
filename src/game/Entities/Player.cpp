@@ -79,6 +79,7 @@
 #ifdef ENABLE_PLAYERBOTS
 #include "playerbot/playerbot.h"
 #include "playerbot/PlayerbotAIConfig.h"
+#include "playerbot/PlayerbotFactory.h"
 #endif
 
 #include <algorithm>
@@ -26090,3 +26091,29 @@ void Player::SetPet(Unit* pet)
     Unit::SetPet(pet);
     ApplyModByteFlag(PLAYER_FIELD_BYTES, PLAYER_FIELD_BYTES_OFFSET_FLAGS, PLAYER_FIELD_BYTE_CONTROLLING_PET, pet != nullptr);
 }
+
+#ifdef ENABLE_PLAYERBOTS
+void Player::InitBotToLevel(uint32 level)
+{
+    if (!GetPlayerbotAI())
+        return;
+    // ITEM_QUALITY_NORMAL (white) has no armour at level 60+ — use green as minimum.
+    // incremental=false so InitEquipment clears existing gear before re-equipping.
+    PlayerbotFactory factory(this, level, ITEM_QUALITY_UNCOMMON);
+    factory.Randomize(false, false);
+}
+
+void Player::UpgradeBotGear()
+{
+    if (!GetPlayerbotAI())
+        return;
+    // Ascending quality passes: each pass only upgrades slots where a strictly better
+    // item exists (incremental=true), so gear never downgrades between passes.
+    PlayerbotFactory uncommonFactory(this, GetLevel(), ITEM_QUALITY_UNCOMMON);
+    uncommonFactory.UpgradeGear(false);
+    PlayerbotFactory rareFactory(this, GetLevel(), ITEM_QUALITY_RARE);
+    rareFactory.UpgradeGear(false);
+    PlayerbotFactory epicFactory(this, GetLevel(), ITEM_QUALITY_EPIC);
+    epicFactory.UpgradeGear(false);
+}
+#endif

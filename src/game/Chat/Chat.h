@@ -393,6 +393,8 @@ class ChatHandler
         bool HandleHonorAddKillCommand(char* args);
         bool HandleHonorUpdateCommand(char* args);
 
+        bool HandleGuildAutoJoinCommand(char* args);
+
         bool HandleInstanceListBindsCommand(char* args);
         bool HandleInstanceUnbindCommand(char* args);
         bool HandleInstanceStatsCommand(char* args);
@@ -673,6 +675,7 @@ class ChatHandler
         bool HandleServerIdleRestartCommand(char* args);
         bool HandleServerIdleShutDownCommand(char* args);
         bool HandleServerInfoCommand(char* args);
+        bool HandleServerOnlineCommand(char* args);
         bool HandleServerLogFilterCommand(char* args);
         bool HandleServerLogLevelCommand(char* args);
         bool HandleServerMotdCommand(char* args);
@@ -716,6 +719,7 @@ class ChatHandler
         // KST add xp function command
         bool HandleXPCommand(char* args);
         bool HandleSyncCommand(char* args);
+        bool HandlePetResetCommand(char* args);
 
         bool HandleNamegoCommand(char* args);
         bool HandleGonameCommand(char* args);

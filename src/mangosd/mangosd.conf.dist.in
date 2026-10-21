@@ -953,6 +953,13 @@ Quests.IgnoreRaid = 0
 Group.OfflineLeaderDelay = 300
 Guild.EventLogRecordsCount = 100
 Guild.BankEventLogRecordsCount = 25
+
+#    Guild.AutoJoin.Name
+#        Description: Name of the guild players can join using the .guildjoin command.
+#                     Leave empty to disable the command for players.
+#        Default:     "" (disabled)
+
+Guild.AutoJoin.Name = ""
 MirrorTimer.Fatigue.Max = 60
 MirrorTimer.Breath.Max = 180
 MirrorTimer.Environmental.Max = 1

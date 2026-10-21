@@ -727,6 +727,28 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
             }
         }
 
+        // KST scaling damage for DK spells for lvl under 55
+        if (m_caster && m_caster->IsPlayer() && m_caster->getClass() == CLASS_DEATH_KNIGHT && m_caster->GetLevel() < 55)
+        {
+            // Check that the spell belongs to the Death Knight class
+            if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
+            {
+                // Log scalling based on level
+                float level = (float)m_caster->GetLevel();
+				float levelProgress = level / 55.0f;
+				float dkRatio = std::pow(levelProgress, 2.5f);
+				dkRatio = dkRatio * 0.9f + levelProgress * 0.1f;
+				dkRatio = std::max(0.01f, std::min(dkRatio, 1.0f));
+
+                // Apply ratio
+                damage = int32(damage * dkRatio);
+
+                // Security against 0 or negative damage
+                if (damage <= 0 && m_spellInfo->CalculateSimpleValue(eff_idx) > 0)
+                    damage = 1;
+            }
+        }
+
         if (damage >= 0)
             m_damagePerEffect[eff_idx] = CalculateSpellEffectDamage(unitTarget, damage, m_damageDoneMultiplier[eff_idx], eff_idx);
     }
@@ -7542,6 +7564,22 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                 break;
             default:
                 break;                                      // not weapon damage effect, just skip
+        }
+    }
+
+	// KST scaling damage for DK spells for lvl under 55 (Fixed damage part only)
+    if (m_caster && m_caster->IsPlayer() && m_caster->getClass() == CLASS_DEATH_KNIGHT && m_caster->GetLevel() < 55)
+    {
+        if (m_spellInfo->SpellFamilyName == SPELLFAMILY_DEATHKNIGHT)
+        {
+            // Log scalling based on level
+            float level = (float)m_caster->GetLevel();
+			float levelProgress = level / 55.0f;
+			float dkRatio = std::pow(levelProgress, 2.5f);
+			dkRatio = dkRatio * 0.9f + levelProgress * 0.1f;
+			dkRatio = std::max(0.01f, std::min(dkRatio, 1.0f));
+
+            fixed_bonus = int32(fixed_bonus * dkRatio);
         }
     }
 

@@ -3866,7 +3866,7 @@ void Spell::handle_immediate()
     _handle_finish_phase();
 
     if (m_spellState != SPELL_STATE_CHANNELING)
-        finish();                                       // successfully finish spell cast (not last in case autorepeat or channel spell)
+        finish();
 }
 
 uint64 Spell::handle_delayed(uint64 t_offset)

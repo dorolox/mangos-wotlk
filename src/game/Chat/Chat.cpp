@@ -1100,6 +1100,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "mmap",           SEC_GAMEMASTER,     false, nullptr,                                        "", mmapCommandTable },
         { "worldstate",     SEC_ADMINISTRATOR,  false, nullptr,                                        "", worldStateTable },
         { "loot",           SEC_GAMEMASTER,     true,  nullptr,                                        "", lootCommandTable },
+        { "sync",           SEC_PLAYER,         false, &ChatHandler::HandleSyncCommand,                "", nullptr },
 
         { nullptr,             0,                  false, nullptr,                                           "", nullptr }
     };

@@ -337,3 +337,78 @@ bool ChatHandler::HandleXPCommand(char* args)
 
     return true;
 }
+
+bool ChatHandler::HandleSyncCommand(char* args)
+{
+    Player* player = m_session->GetPlayer();
+    if (!player)
+        return false;
+
+    if (!*args)
+    {
+        PSendSysMessage("Usage: .sync on | .sync off | .sync show");
+        return true;
+    }
+
+    std::string argstr = (char*)args;
+
+    if (argstr == "show")
+    {
+        if (player->IsSynced())
+            PSendSysMessage("Level sync is ON — synced to level %u (real level: %u).", player->GetSyncLevel(), player->GetLevel());
+        else
+            PSendSysMessage("Level sync is OFF (real level: %u).", player->GetLevel());
+        return true;
+    }
+
+    if (player->IsInCombat())
+    {
+        SendSysMessage("Cannot change sync while in combat.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if (argstr == "off")
+    {
+        if (!player->IsSynced())
+        {
+            SendSysMessage("Level sync is not active.");
+            return true;
+        }
+        player->ClearSync();
+        SendSysMessage("Level sync deactivated.");
+        return true;
+    }
+
+    if (argstr == "on")
+    {
+        Group* group = player->GetGroup();
+        if (!group)
+        {
+            SendSysMessage("You must be in a party to activate level sync.");
+            SetSentErrorMessage(true);
+            return false;
+        }
+
+        uint32 lowestLevel = player->GetLevel();
+        for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
+        {
+            Player* member = itr->getSource();
+            if (member && member->IsInWorld() && member->GetLevel() < lowestLevel)
+                lowestLevel = member->GetLevel();
+        }
+
+        if (lowestLevel >= player->GetLevel())
+        {
+            SendSysMessage("All party members are at your level or higher; sync has no effect.");
+            return true;
+        }
+
+        player->SetSync(lowestLevel);
+        PSendSysMessage("Level sync activated. Synced to level %u.", lowestLevel);
+        return true;
+    }
+
+    PSendSysMessage("Usage: .sync on | .sync off | .sync show");
+    return true;
+}

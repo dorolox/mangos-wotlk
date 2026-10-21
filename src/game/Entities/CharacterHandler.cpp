@@ -168,7 +168,7 @@ void PlayerbotHolder::HandlePlayerBotLoginCallback(QueryResult* dummy, SqlQueryH
         ch.PSendSysMessage("You are not allowed to control bot %s", bot->GetName());
     }
 
-    LogoutPlayerBot(bot->GetObjectGuid());
+    LogoutPlayerBot(bot->GetGUIDLow());
     sLog.outError("Attempt to add not allowed bot %s, please try to reset all random bots", bot->GetName());
 }
 #endif

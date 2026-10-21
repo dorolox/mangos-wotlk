@@ -854,6 +854,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "idlerestart",    SEC_ADMINISTRATOR,  true,  nullptr,                                           "", serverIdleRestartCommandTable },
         { "idleshutdown",   SEC_ADMINISTRATOR,  true,  nullptr,                                           "", serverIdleShutdownCommandTable },
         { "info",           SEC_PLAYER,         true,  &ChatHandler::HandleServerInfoCommand,          "", nullptr },
+        { "online",         SEC_PLAYER,         true,  &ChatHandler::HandleServerOnlineCommand,        "", nullptr },
         { "log",            SEC_CONSOLE,        true,  nullptr,                                           "", serverLogCommandTable },
         { "motd",           SEC_PLAYER,         true,  &ChatHandler::HandleServerMotdCommand,          "", nullptr },
         { "plimit",         SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleServerPLimitCommand,        "", nullptr },
@@ -1101,6 +1102,8 @@ ChatCommand* ChatHandler::getCommandTable()
         { "worldstate",     SEC_ADMINISTRATOR,  false, nullptr,                                        "", worldStateTable },
         { "loot",           SEC_GAMEMASTER,     true,  nullptr,                                        "", lootCommandTable },
         { "sync",           SEC_PLAYER,         false, &ChatHandler::HandleSyncCommand,                "", nullptr },
+        { "pet",            SEC_PLAYER,         false, &ChatHandler::HandlePetResetCommand,            "", nullptr },
+        { "guildjoin",      SEC_PLAYER,         false, &ChatHandler::HandleGuildAutoJoinCommand,        "", nullptr },
 
         { nullptr,             0,                  false, nullptr,                                           "", nullptr }
     };

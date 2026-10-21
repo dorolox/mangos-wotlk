@@ -674,6 +674,7 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_SKILL_GAIN_DEFENSE,   "SkillGain.Defense",   1);
     setConfig(CONFIG_UINT32_SKILL_GAIN_GATHERING, "SkillGain.Gathering", 1);
     setConfig(CONFIG_UINT32_SKILL_GAIN_WEAPON,       "SkillGain.Weapon",    1);
+    setConfig(CONFIG_UINT32_RATE_DROP_ITEM_GATHERING_RANDOM_MAX, "Rate.Drop.Item.Gathering.RandomMax", 1);
 
     setConfig(CONFIG_BOOL_SKILL_FAIL_LOOT_FISHING,         "SkillFail.Loot.Fishing", true);
     setConfig(CONFIG_BOOL_SKILL_FAIL_GAIN_FISHING,         "SkillFail.Gain.Fishing", true);

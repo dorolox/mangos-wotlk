@@ -6172,7 +6172,7 @@ bool Player::UpdateFishingSkill()
     {
         m_fishingSteps -= stepsNeededToLevelUp;
 
-        return UpdateSkillPro(SKILL_FISHING, 100*10, 1);
+        return UpdateSkillPro(SKILL_FISHING, 100*10, sWorld.getConfig(CONFIG_UINT32_SKILL_GAIN_GATHERING));
     }
 
     return false;
